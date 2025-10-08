@@ -19,8 +19,17 @@ bool enqueue(Queue* this , int32_t data){
 		return false;
 	}
 
+	uint32_t irqs = __getPRIMASK();
+	if(irqs==0){
+		__disable_irq();
+	}
+
 	this->buffer[this->load] = data;
 	this->load++;
+
+	if(irqs==0){
+		__enable_irq();
+	}
 
 	return true;
 }
@@ -30,8 +39,17 @@ bool dequeue(Queue* this, int32_t* data){
 		return false;
 	}
 
+	uint32_t irqs = __getPRIMASK();
+	if(irqs==0){
+		__disable_irq();
+	}
+
 	*data = this->buffer[this->head];
 	this->load--;
+
+	if(irqs==0){
+		__enable_irq();
+	}
 
 	return true;
 }
