@@ -21,14 +21,15 @@ void send_SPI_data(uint8_t data){
 	uint8_t LSN = data & 0x0F;		 	// Least significant nibble
 
 
-	GPIOA->ODR &= (0<<4); // PA4 is chip select pin (drop low for transmission)
+	GPIOA->ODR &= (0<<4); // PA4 is chip select pin (drop low for start of transmission)
 
 	// First part of the 24 bit transmission 0b00011111 (LSB First)
 	LL_SPI_TransmitData8(SPI1, 0x1F);
 	LL_SPI_TransmitData8(SPI1, MSN);
 	LL_SPI_TransmitData8(SPI1, LSN);
 
-	GPIOA->ODR |= (1<<4); // PA4 is chip select pin (drop low for chip select)
+	GPIOA->ODR |= (1<<4); // PA4 is chip select pin (bring high for end of transmission)
+							// How to synchronise with the end of the spi transmission?
 
 }
 
