@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SPIfunctions.h"
+#include "SoftwareSPI.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -87,12 +88,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_SPI1_Init();
+
   /* USER CODE BEGIN 2 */
 
-  LL_SPI_Enable(SPI1);
 
-  init_display();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -101,10 +100,10 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-	  for (int i = 0; i<10000; i++){}
-	  send_SPI_data(0x41);
-	  send_SPI_data(0x42);
-	  send_SPI_data(0x43);
+
+	  sendSPI(0xA3);
+	  sendSPI(0xF2);
+	  sendSPI(0x94);
 
 
     /* USER CODE BEGIN 3 */
