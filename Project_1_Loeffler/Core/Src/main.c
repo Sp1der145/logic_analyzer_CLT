@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SoftwareSPI.h"
-#include "SPIfunctions.h"
+#include "DOGS_display_functions.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,13 +94,40 @@ int main(void)
 
   init_display();
 
+
+
+
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+	  clear_display();
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  set_cursor(2, 3);
+	  sendSPI_DOGS(0x54, 1); //T
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x6F, 1); //o
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x6D, 1); //m
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x6D, 1); //m
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x79, 1); //y
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x20, 1); // *space*
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x4A, 1); //J
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x6F, 1); //o
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x68, 1); //h
+	  for (uint32_t i = 0; i < 1000000; i++){}
+	  sendSPI_DOGS(0x6E, 1); //n
+	  for (uint32_t i = 0; i < 5000000; i++){}
 
 
 
