@@ -5,8 +5,10 @@
  *      Author: trloeffler20
  */
 
-#ifndef SRC_SOFTWARESPI_H_
-#define SRC_SOFTWARESPI_H_
+#ifndef INC_SOFTWARESPI_H_
+#define INC_SOFTWARESPI_H_
+
+#include <stdint.h>
 
 void sendSPI(uint8_t data);
 
@@ -14,4 +16,4 @@ void sendSPI_DOGS(uint8_t data, uint8_t type);
 
 
 
-#endif /* SRC_SOFTWARESPI_H_ */
+#endif /* INC_SOFTWARESPI_H_ */

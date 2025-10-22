@@ -5,9 +5,15 @@
  *      Author: trloeffler20
  */
 
+#include <DOGS_character_lookup.h>
 #include <stdint.h>
+#include <SoftwareSPI.h>
 #include "stm32l4xx_ll_gpio.h"	// GPIO library functions
-#include "SoftwareSPI.h"
+
+
+
+
+
 
 
 void init_display(){
@@ -29,7 +35,7 @@ void init_display(){
 	for (uint32_t i = 0; i < 10000; i++){}
 
 	sendSPI_DOGS(0x3A, 0);
-	sendSPI_DOGS(0x09, 0); // Display line mode?
+	sendSPI_DOGS(0x09, 0); // Display line mode? 09 for normal 1B for double line
 	sendSPI_DOGS(0x06, 0);
 	sendSPI_DOGS(0x1E, 0);
 	sendSPI_DOGS(0x39, 0);
@@ -53,11 +59,11 @@ void init_display(){
 	sendSPI_DOGS(0x38, 0);
 	*/
 
-	/* Set display to 2 lines
+	// Setting the display to
 	sendSPI_DOGS(0x3A, 0);
 	sendSPI_DOGS(0x1B, 0);
-	sendSPI_DOGS(0x3C, 1);
-	*/
+	sendSPI_DOGS(0x3C, 0);
+
 
 
 
@@ -74,7 +80,143 @@ void clear_display(){
 
 
 void set_cursor(uint8_t row, uint8_t col) {
+
       static const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x40};
+
       uint8_t addr = row_addr[row - 1] + (col - 1);
-      sendSPI_DOGS(0x80 | addr, 0);  // command set DDRAM address
-  }
+      sendSPI_DOGS(0x80 | addr, 0);  // The address/cursor location is 0x80 + row offset + column offset
+
+}
+
+void send_charDOGS(uint8_t data){
+
+	uint8_t hex = char_to_DOGShex(data);
+	sendSPI_DOGS(hex, 1);
+
+}
+
+
+void setup_display(){
+
+	clear_display();
+
+	/* For frequency
+	set_cursor(1,4);
+	send_charDOGS('H');
+	send_charDOGS('z');
+	send_charDOGS(':');
+	*/
+
+	/* For period */
+	set_cursor(1,4);
+	send_charDOGS('u');
+	send_charDOGS('s');
+	send_charDOGS(':');
+
+
+	set_cursor(2,3);
+	send_charDOGS('M');
+	send_charDOGS('S');
+	send_charDOGS('G');
+	send_charDOGS(':');
+	send_charDOGS(' ');
+	send_charDOGS(0);
+	send_charDOGS('x');
+
+	// moving the cursor off the screen
+	set_cursor(2,18);
+
+
+}
+
+void update_display_values(uint16_t period, uint16_t SPIhex){
+
+
+	uint8_t hundreds;
+	uint8_t tens;
+	uint8_t ones;
+
+	uint8_t SPI_LSN;	// Least significant nibble
+	uint8_t SPI_MSN;	// Most significant nibble
+
+
+	// Period calculations
+	if (period < 10000){
+		hundreds = period/100;
+		tens = (period - (hundreds*100)) / 10;
+		ones = period - (hundreds*100) - (tens*10);
+	}
+	else{
+		hundreds = '?';
+		tens = '?';
+		ones = '?';
+	}
+
+	// SPIhex is 16 bit so we can send "??" to the display
+	if (SPIhex > 0xFF){
+			SPI_LSN = '?';
+			SPI_MSN = '?';
+	}
+	else{
+		SPI_LSN = SPIhex & 0x0F;
+		SPI_MSN = (SPIhex >> 4) & 0x0F;
+	}
+
+
+	set_cursor(1,8);
+
+	if (hundreds != 0){
+		send_charDOGS(hundreds);
+	}
+	if (tens != 0 || hundreds != 0){
+		send_charDOGS(tens);
+	}
+	send_charDOGS(ones);
+
+
+	set_cursor(2,10);
+
+	send_charDOGS(SPI_LSN);
+	send_charDOGS(SPI_MSN);
+
+
+
+	// moving the cursor off the screen
+	//set_cursor(2,18);
+}
+
+
+
+
+
+void screensaver(){
+	clear_display();
+	for (uint32_t i = 0; i < 1000000; i++){}
+	set_cursor(1, 3);
+	sendSPI_DOGS(0x54, 1); //T
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x6F, 1); //o
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x6D, 1); //m
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x6D, 1); //m
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x79, 1); //y
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x20, 1); // *space*
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x4A, 1); //J
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x6F, 1); //o
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x68, 1); //h
+	for (uint32_t i = 0; i < 1000000; i++){}
+	sendSPI_DOGS(0x6E, 1); //n
+	for (uint32_t i = 0; i < 5000000; i++){}
+}
+
+
+
+
+
+

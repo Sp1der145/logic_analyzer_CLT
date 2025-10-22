@@ -64,8 +64,8 @@ void sendSPI_DOGS(uint8_t data, uint8_t type){
 	else{
 		sendSPI(0x5F); // RS = 1 for data
 	}
-	sendSPI(LSN);
 	sendSPI(MSN);
+	sendSPI(LSN);
 
 	GPIOA->ODR |= (1<<4); // PA4 is chip select pin (bring high for end of transmission)
 							// How to synchronise with the end of the SPI transmission?
