@@ -27,6 +27,10 @@ bool enqueue(Queue* this , int32_t data){
 	this->buffer[this->load] = data;
 	this->load++;
 
+	if(this->load >= QUEUE_DEPTH){
+		this->load = 0;
+	}
+
 	if(irqs==0){
 		__enable_irq();
 	}
@@ -45,6 +49,13 @@ bool dequeue(Queue* this, int32_t* data){
 	}
 
 	*data = this->buffer[this->head];
+	this->head++;
+
+
+	if(this->head >= QUEUE_DEPTH){
+		this->head = 0;
+	}
+
 	this->load--;
 
 	if(irqs==0){
