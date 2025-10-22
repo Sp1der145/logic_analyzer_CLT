@@ -5,6 +5,9 @@
  *      Author: crupton23
  */
 #include "main.h"
+/* ------------------------------------------------------ */
+/* ---------------------- Encdr&Btn --------------------- */
+/* ------------------------------------------------------ */
 
 /* ---------------------- ENUMS --------------------- */
 // Enums for Encoder
@@ -14,12 +17,12 @@ enum encoderOutput {PRESSED, UNPRESSED};
 enum buttonStates{PBqUP, PBqDOWN, PBqUPweak, PBqDOWNweak};
 enum buttonOutput{PBUP, PBDOWN, PBRELEASE, PBPRESS};
 enum buttonInput{PBlow, PBhigh};
+enum bNum{ptgTop, pgtMiddle, pgtBottom, ngtTop, ngtMiddle, ngtBottom};
 
 /* ---------------------- INITS --------------------- */
 //Input Var Initialization
 volatile uint8_t P_A_in = UNPRESSED;
 volatile uint8_t P_B_in = UNPRESSED;
-volatile uint8_t incCMD = 0; //DO I STILL NEED THIS? PROB NOT?
 
 //GPIO IN A
 volatile uint8_t C_A_in;
@@ -68,6 +71,15 @@ const struct qTransition pushButton[8] = {
 		{PBqDOWNweak, PBhigh, PBqUP,       PBRELEASE},
 	};
 
+const struct qTransition triggerCycles[6] = {
+		{ptgTop, 	buttonPress,  pgtMiddle, pgtMiddle},//Out 1 	USE A GETTER to have the output gotten
+		{pgtMiddle, buttonPress,  pgtBottom, pgtBottom},//Out 2
+		{pgtBottom, buttonPress,  ngtTop, 	 ngtTop   },//Out 3
+		{ngtTop, 	buttonPress,  ngtMiddle, ngtMiddle},//Out 4	  	SO FUTURE CONNER TALK TO LOGAN
+		{ngtMiddle, buttonPress,  ngtBottom, ngtBottom},//Out 5   	CONNECT THESE 2 FUNCTIONALITIES
+		{ngtBottom, buttonPress,  ptgTop, 	 ptgTop   },//Out 0
+	};
+
 /* ---------------------- STATE MACHINES --------------------- */
 // Struct for State Machine
 struct completeFSM {volatile uint8_t q;const uint8_t numTransitions;const struct qTransition *table;};
@@ -89,7 +101,7 @@ uint8_t getFSMoutput(struct completeFSM *x, uint8_t in) {
 
 /* ---------------------- FXNS --------------------- */
 // Get the input from Channel A pin for the Encoder
-void getChannelAInput(){
+uint getChannelAInput(){
 	if (inPA9 >= 1) {
 		inPA9 = 1;
 	} else {
@@ -114,6 +126,10 @@ void updateChannelBFSM(){
 }
 // Check for a change in Channel A
 void checkChannelA(){
+	// Update State Machine for Channel A
+	C_A_in = getFSMoutput(&EncA, inPA9);
+	// Update State Machine for Channel B
+	C_B_in = getFSMoutput(&EncB, inPA10);
 	if (C_A_in != P_A_in) {
 		// A has changed. Check the state of B to determine direction.
 			if (C_A_in != C_B_in) {
@@ -126,6 +142,10 @@ void checkChannelA(){
 }
 // Check for a change in Channel A
 void checkChannelB(){
+	// Update State Machine for Channel A
+	C_A_in = getFSMoutput(&EncA, inPA9);
+	// Update State Machine for Channel B
+	C_B_in = getFSMoutput(&EncB, inPA10);
 	if (C_B_in != P_B_in) {
 			// B has changed. Check the state of A to determine direction.
 			if (C_B_in == C_A_in) {
@@ -140,40 +160,29 @@ void checkChannelB(){
 
 /* ---------------------- CW/CCW Checker START --------------------- */
 // FSM Structs for Encoder pin A & Encoder pin B
-	struct completeFSM EncA = { .q = (uint8_t) 1, .numTransitions = 16, .table = encoderEdgeTransitions };
-	struct completeFSM EncB = { .q = (uint8_t) 1, .numTransitions = 16, .table = encoderEdgeTransitions };
+struct completeFSM EncA = { .q = (uint8_t) 1, .numTransitions = 16, .table = encoderEdgeTransitions };
+struct completeFSM EncB = { .q = (uint8_t) 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 
 
 /* ---------------------- BUTTON CODE --------------------- */
-enum bNum{ptgTop, pgtMiddle, pgtBottom, ngtTop, ngtMiddle, ngtBottom};
-
-const struct qTransition triggerCycles[6] = {
-		{ptgTop, 	buttonPress,  pgtMiddle, pgtMiddle},//Out 1 	USE A GETTER to have the output gotten
-		{pgtMiddle, buttonPress,  pgtBottom, pgtBottom},//Out 2
-		{pgtBottom, buttonPress,  ngtTop, 	 ngtTop   },//Out 3
-		{ngtTop, 	buttonPress,  ngtMiddle, ngtMiddle},//Out 4	  	SO FUTURE CONNER TALK TO LOGAN
-		{ngtMiddle, buttonPress,  ngtBottom, ngtBottom},//Out 5   	CONNECT THESE 2 FUNCTIONALITIES
-		{ngtBottom, buttonPress,  ptgTop, 	 ptgTop   },//Out 0
-	};
-
 //buttons set up
 struct completeFSM btnInc = {.q = (uint8_t) 1, .numTransitions = 8, .table=pushButton};
 //Light FSM Setup
-struct completeFSM triggerTraceFSM = {.q = (uint8_t) B1, .numTransitions = 8, .table=lightIncDec};
-
-
-//While Loop Stuff
-if (inPA8 >= 1){
-	inPA8 = 1;
-}
+struct completeFSM triggerTraceFSM = {.q = (uint8_t) pgtMiddle, .numTransitions = 6, .table=triggerCycles};
 
 //Update states
-incCMD = getFSMoutput(&btnInc, inPA8);
+//getFSMoutput(&btnInc, inPA8);
 
-//DONT NEED THIS JUST USE THE SAME CALLING OF FXNS
-//Blink lights
-if((inPA8 == 1)&&(inPB1 != 1)){
-	//go to next trigger trace
-	triggerTrace = getFSMoutput(&triggerTraceFSM, buttonPress);
+void nextTriggerTrace(){
+		//go to next trigger trace based on button press
+		triggerTrace = getFSMoutput(&triggerTraceFSM, buttonPress);
+	}
 }
 
+//multiple queues for sending sample rate
+//Once logan pushes a queue fxn to main try creating a sample rate queue and GPIO Output Queue
+//In the mean time try to get a GPIO for SPI set up that fills 3 arrays full of data
+
+/* ----------------------------------------------------- */
+/* ---------------------- SPI&GPIO --------------------- */
+/* ----------------------------------------------------- */
