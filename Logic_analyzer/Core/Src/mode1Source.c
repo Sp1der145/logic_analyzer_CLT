@@ -36,6 +36,10 @@ volatile uint8_t inPA10 = (GPIOA->IDR & (1 << 10)) == 0;
 //Button input mask		WILL NEED A DIFF INPUT PIN
 volatile uint8_t inPA8 = (GPIOA-> IDR &(1<<8)) == 0;
 
+//Externs for spi_capture.c
+extern uint8_t triggerTrace;    // current state from trigger FSM out
+extern uint32_t sampleRate;     // current sample divider N
+
 
 /* ---------------------- Q-TRANSITION TABLES --------------------- */
 // q-Transition table set up
@@ -133,9 +137,9 @@ void checkChannelA(){
 	if (C_A_in != P_A_in) {
 		// A has changed. Check the state of B to determine direction.
 			if (C_A_in != C_B_in) {
-				count--; // Clockwise rotation			CHANGE TO NOT BE COUNT
+				count--; // Clockwise rotation			NEED TO CREATE A FSM FOR THE CURRENT SAMPLE RATE
 			} else {
-				count++; // Counter-clockwise rotation	CHANGE TO NOT BE COUNT
+				count++; // Counter-clockwise rotation	NEED TO CREATE A FSM FOR THE CURRENT SAMPLE RATE
 			}
 			P_A_in = C_A_in; // Update the previous state
 	}
@@ -149,9 +153,9 @@ void checkChannelB(){
 	if (C_B_in != P_B_in) {
 			// B has changed. Check the state of A to determine direction.
 			if (C_B_in == C_A_in) {
-				count--; // Clockwise rotation			CHANGE TO NOT BE COUNT
+				count--; // Clockwise rotation			NEED TO CREATE A FSM FOR THE CURRENT SAMPLE RATE
 			} else {
-				count++; // Counter-clockwise rotation	CHANGE TO NOT BE COUNT
+				count++; // Counter-clockwise rotation	NEED TO CREATE A FSM FOR THE CURRENT SAMPLE RATE
 			}
 			P_B_in = C_B_in; // Update the previous state
 	}
@@ -181,8 +185,3 @@ void nextTriggerTrace(){
 
 //multiple queues for sending sample rate
 //Once logan pushes a queue fxn to main try creating a sample rate queue and GPIO Output Queue
-//In the mean time try to get a GPIO for SPI set up that fills 3 arrays full of data
-
-/* ----------------------------------------------------- */
-/* ---------------------- SPI&GPIO --------------------- */
-/* ----------------------------------------------------- */
