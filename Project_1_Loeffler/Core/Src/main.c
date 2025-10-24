@@ -93,8 +93,14 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   init_display();
+  clear_display();
+  setup_display();
+  update_display_values(10000, 0xFFFF);
+  for (uint32_t j = 0; j<10000000; j++){}
 
 
+
+  uint8_t hex_value = 0;
 
 
 
@@ -105,29 +111,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  clear_display();
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  set_cursor(2, 3);
-	  sendSPI_DOGS(0x54, 1); //T
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x6F, 1); //o
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x6D, 1); //m
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x6D, 1); //m
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x79, 1); //y
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x20, 1); // *space*
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x4A, 1); //J
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x6F, 1); //o
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x68, 1); //h
-	  for (uint32_t i = 0; i < 1000000; i++){}
-	  sendSPI_DOGS(0x6E, 1); //n
-	  for (uint32_t i = 0; i < 5000000; i++){}
+	  clear_display_values();
+	  for (uint16_t i = 0; i<1000; i++){
+		  update_display_values(i, hex_value);
+		  hex_value++;
+		  for (uint32_t j = 0; j<1000000; j++){}
+	  }
+
 
 
 

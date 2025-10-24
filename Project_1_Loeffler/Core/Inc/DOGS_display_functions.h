@@ -10,10 +10,17 @@
 
 void init_display();
 
-void set_cursor(uint8_t row, uint8_t col);
-
 void clear_display();
 
+void set_cursor(uint8_t row, uint8_t col);
+
+void send_charDOGS(int8_t data);
+
+void setup_display();
+
+void update_display_values(uint16_t period, uint16_t SPIhex);
+
+void clear_display_values();
 
 
 #endif /* SRC_DOGS_DISPLAY_FUNCTIONS_H_ */
