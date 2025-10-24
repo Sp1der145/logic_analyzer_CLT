@@ -45,19 +45,11 @@ void init_display(){
 	sendSPI_DOGS(0x0F, 0);
 
 
-
-	/* Set character table ROM A
-	sendSPI_DOGS(0x3A, 0);
-	sendSPI_DOGS(0x72, 0);
-	sendSPI_DOGS(0x0C, 1);
-	sendSPI_DOGS(0x38, 0);
-	*/
-
-	/* Set display to 2 lines
+	// Set display to 2 lines
 	sendSPI_DOGS(0x3A, 0);
 	sendSPI_DOGS(0x1B, 0);
-	sendSPI_DOGS(0x3C, 1);
-	*/
+	sendSPI_DOGS(0x3C, 0);
+
 
 
 
@@ -77,4 +69,4 @@ void set_cursor(uint8_t row, uint8_t col) {
       static const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x40};
       uint8_t addr = row_addr[row - 1] + (col - 1);
       sendSPI_DOGS(0x80 | addr, 0);  // command set DDRAM address
-  }
+}
