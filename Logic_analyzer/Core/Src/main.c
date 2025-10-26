@@ -97,8 +97,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   lcd_init();       // Initialize DOGS102 display
 
-  // Draw one pixel in the center
-  draw_pixel(50, 30);
+  // Draw one pixel
+  draw_pixel(0, 50);
   while (1)
   {
     /* USER CODE END WHILE */
