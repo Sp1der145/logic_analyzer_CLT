@@ -87,7 +87,7 @@ void draw_pixel(uint8_t x, uint8_t y) {
     uint8_t data = (1 << bit);
 
     command(0xB0 | page);           // Set page
-    command(0x10 | (x >> 4));       // Column high nibble
-    command(0x00 | (x & 0x0F));     // Column low nibble
+    command(0x10 | (x >> 4));       // Column MSB
+    command(0x00 | (x & 0x0F));     // Column LSB
     giveData(data);
 }
