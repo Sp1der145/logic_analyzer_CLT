@@ -206,9 +206,7 @@ void SPI1_IRQHandler(void)
   /* USER CODE BEGIN SPI1_IRQn 0 */
 
   /* USER CODE END SPI1_IRQn 0 */
-  // HAL_SPI_IRQHandler(&hspi1);
-
-
+  HAL_SPI_IRQHandler(&hspi1);
   /* USER CODE BEGIN SPI1_IRQn 1 */
   SPI1->SR &= ~SPI_SR_RXNE_Msk; // clearing the RXNE flag
   SPI_RX_hex = (uint8_t)(0xFF & SPI1->DR);
