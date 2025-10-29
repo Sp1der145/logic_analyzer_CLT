@@ -33,13 +33,13 @@ volatile uint8_t inPA9 = (GPIOA->IDR & (1 << 9)) == 0;
 // Encoder Channel B Input Mask 		WILL NEED A DIFF INPUT PIN		INPUT MASK FOR GPIO (CHANGE INPUT PIN)
 volatile uint8_t inPA10 = (GPIOA->IDR & (1 << 10)) == 0;
 
-//Button input mask		WILL NEED A DIFF INPUT PIN
+//Button input mask						WILL NEED A DIFF INPUT PIN		INPUT MASK FOR GPIO (CHANGE INPUT PIN)
 volatile uint8_t inPA8 = (GPIOA-> IDR &(1<<8)) == 0;
 
-//Externs for spi_capture.c
+//Externs for QUEUES
 extern uint8_t triggerTrace;    // current state from trigger FSM out
 extern uint32_t sampleRate;     // current sample divider N
-
+//FIGURE OUT WHO/WHERE THESE GO
 
 /* ---------------------- Q-TRANSITION TABLES --------------------- */
 // q-Transition table set up
@@ -168,20 +168,19 @@ struct completeFSM btnInc = {.q = (uint8_t) 1, .numTransitions = 8, .table=pushB
 //Light FSM Setup
 struct completeFSM triggerTraceFSM = {.q = (uint8_t) pgtMiddle, .numTransitions = 6, .table=triggerCycles};
 
-//Update states
-//getFSMoutput(&btnInc, inPA8);
-
 void nextTriggerTrace(){
+		//Update buttonPress according to current state of button
+		buttonPress = getFSMoutput(&btnInc, inPA8);
 		//go to next trigger trace based on button press
 		triggerTrace = getFSMoutput(&triggerTraceFSM, buttonPress);
 	}
-}
 
-//multiple queues for sending sample rate
-//Once logan pushes a queue fxn to main try creating a sample rate queue and GPIO Output Queue
 
+//TASK-CALLERS
 void checkEncoderInputs(){
 	checkChannelA();
 	checkChannelB();
 
 }
+
+
