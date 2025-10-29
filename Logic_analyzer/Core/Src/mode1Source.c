@@ -28,9 +28,9 @@ volatile uint8_t P_B_in = UNPRESSED;
 volatile uint8_t C_A_in;
 //GPIO IN B
 volatile uint8_t C_B_in;
-// Encoder Channel A Input Mask			WILL NEED A DIFF INPUT PIN
+// Encoder Channel A Input Mask			WILL NEED A DIFF INPUT PIN		INPUT MASK FOR GPIO (CHANGE INPUT PIN)
 volatile uint8_t inPA9 = (GPIOA->IDR & (1 << 9)) == 0;
-// Encoder Channel B Input Mask 		WILL NEED A DIFF INPUT PIN
+// Encoder Channel B Input Mask 		WILL NEED A DIFF INPUT PIN		INPUT MASK FOR GPIO (CHANGE INPUT PIN)
 volatile uint8_t inPA10 = (GPIOA->IDR & (1 << 10)) == 0;
 
 //Button input mask		WILL NEED A DIFF INPUT PIN
@@ -112,6 +112,7 @@ uint getChannelAInput(){
 		inPA9 = 0;
 	}
 }
+
 // Get the input from Channel B pin for the Encoder
 void getChannelBInput(){
 	if (inPA10 >= 1) {
@@ -120,14 +121,7 @@ void getChannelBInput(){
 		inPA10 = 0;
 	}
 }
-// Update State Machine for Channel A
-void updateChannelAFSM(){
-	C_A_in = getFSMoutput(&EncA, inPA9);
-}
-// Update State Machine for Channel B
-void updateChannelBFSM(){
-	C_B_in = getFSMoutput(&EncB, inPA10);
-}
+
 // Check for a change in Channel A
 void checkChannelA(){
 	// Update State Machine for Channel A
@@ -185,3 +179,9 @@ void nextTriggerTrace(){
 
 //multiple queues for sending sample rate
 //Once logan pushes a queue fxn to main try creating a sample rate queue and GPIO Output Queue
+
+void checkEncoderInputs(){
+	checkChannelA();
+	checkChannelB();
+
+}
