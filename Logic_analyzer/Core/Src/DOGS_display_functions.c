@@ -13,17 +13,17 @@
 void init_display(){
 
 
-	GPIOA->ODR |= (1<<3); // PA3 (A2) is RST (Reset) pin (Active low, start high to make a pulse)
+	GPIOA->ODR |= (1<<7); // PA7 (A6) is RST (Reset) pin (Active low, start high to make a pulse)
 
 	// ~2ms delay to allow stable high level before pulse
 	for (uint32_t i = 0; i < 10000; i++){}
 
-	GPIOA->ODR &= ~(1<<3); // Drop low for a few ms to reset the display before init
+	GPIOA->ODR &= ~(1<<7); // Drop low for a few ms to reset the display before init
 
 	// ~2ms delay pulse width
 	for (uint32_t i = 0; i < 10000; i++){}
 
-	GPIOA->ODR |= (1<<3); // bring back to high to finish the pulse. Stay high indefinitely
+	GPIOA->ODR |= (1<<7); // bring back to high to finish the pulse. Stay high indefinitely
 
 	// ~2ms delay to wait after reset before init commands
 	for (uint32_t i = 0; i < 10000; i++){}

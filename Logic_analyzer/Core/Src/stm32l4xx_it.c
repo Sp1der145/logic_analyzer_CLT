@@ -41,7 +41,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+extern uint8_t SPI_RX_hex;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -55,7 +55,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern SPI_HandleTypeDef hspi1;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -197,6 +197,23 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32l4xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles SPI1 global interrupt.
+  */
+void SPI1_IRQHandler(void)
+{
+  /* USER CODE BEGIN SPI1_IRQn 0 */
+
+  /* USER CODE END SPI1_IRQn 0 */
+  // HAL_SPI_IRQHandler(&hspi1);
+
+
+  /* USER CODE BEGIN SPI1_IRQn 1 */
+  SPI1->SR &= ~SPI_SR_RXNE_Msk; // clearing the RXNE flag
+  SPI_RX_hex = (uint8_t)(0xFF & SPI1->DR);
+  /* USER CODE END SPI1_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 
