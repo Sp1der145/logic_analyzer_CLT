@@ -39,6 +39,24 @@ void displayOff(){
 	return;
 }
 
+void softSPI(uint8_t data){
+	uint8_t shift;
+	for(int8_t i = 7; i>=0; i--){
+		shift = (!!(data&(1<<i)));
+		if(shift){
+			GPIOA -> ODR |= (1<<7);
+		}
+		else{
+			GPIOA -> ODR &= ~(1<<7);
+		}
+
+		for(volatile int i=0; i<500; i++);
+		GPIOA -> ODR |= (1<<5);
+		for(volatile int i=0; i<500; i++);
+		GPIOA -> ODR &= ~(1<<5);
+	}
+}
+
 void sendData(uint8_t byte, bool is_data) {
     if (is_data){
     	GPIOB -> ODR |= (1<<1);
@@ -46,8 +64,8 @@ void sendData(uint8_t byte, bool is_data) {
     else{
     	GPIOB -> ODR &= ~(1<<1);
     }
-
     GPIOB -> ODR &= ~(1<<0);
+	softSPI(byte);
     GPIOB -> ODR |= (1<<0);
 }
 
@@ -60,10 +78,10 @@ void giveData(uint8_t data) {
 }
 
 void reset(void) {
-	GPIOA -> ODR &= ~(1<<12);
-    HAL_Delay(10);
-    GPIOA -> ODR |= (1<<12);
-    HAL_Delay(10);
+	GPIOA -> ODR &= ~(1<<10);
+	for(volatile uint32_t i=0; i<10000; i++);
+    GPIOA -> ODR |= (1<<10);
+	for(volatile uint32_t i=0; i<10000; i++);
 }
 
 void lcd_init(void) {
@@ -71,23 +89,42 @@ void lcd_init(void) {
 
     displayOff();
     command(0x40); // Set display start line = 0
-    command(0xA2); // LCD Bias 1/9
+    command(0xA1); // Reverse view
     command(0xC0); // COM mode
-    command(0x27); // Resistor ratio
+    command(0xA4); // All Pixels On
+    command(0xA6); // Display Inverse Off
+    command(0xA2); // Bias 1/9
     command(0x2F); // Power control
+    command(0x27); // Resistor ratio
     command(0x81); // Set contrast
     command(0x10); // Contrast value
+    command(0xFA); // Temperature curve
+    command(0x90); // Temperature curve
+    displayClear();
     displayOn();
 }
 
+void displayClear() {
+    for(uint8_t page = 0; page < 8; page++){
+        command(0xB0 | page);                      // Set page
+        for(uint8_t col = 0; col < 132; col++){
+            command(0x10 | ((col >> 4) & 0x0F));
+            command(0x00 | (col & 0x0F));
+            giveData(0x00);                        // Clear each byte
+        }
+    }
+}
+
+
 // ----------------- Draw one pixel ----------------------
 void draw_pixel(uint8_t x, uint8_t y) {
-    uint8_t page = y / 8; //row
-    uint8_t bit  = y % 8; //row's row
+    uint8_t page = y / 8;
+    uint8_t bit  = y % 8;
     uint8_t data = (1 << bit);
 
-    command(0xB0 | page);           // Set page
-    command(0x10 | (x & 0xF0 ));    // Column MSB
-    command(0x00 | (x & 0x0F));     // Column LSB
-    giveData(data);
+    command(0xB0 | page);               // Set page
+    command(0x10 | ((x >> 4) & 0x0F));  // Correct MSB
+    command(0x00 | (x & 0x0F));         // LSB
+    giveData(data);                      // Send the byte
 }
+

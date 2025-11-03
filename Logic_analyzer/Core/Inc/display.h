@@ -17,9 +17,11 @@ void command(uint8_t cmd);
 void giveData(uint8_t data);
 void sendData(uint8_t byte, bool is_data);
 void draw_pixel(uint8_t x, uint8_t y);
+void softSPI(uint8_t byte);
 
 void displayOn();
 void displayOff();
+void displayClear();
 
 
 
