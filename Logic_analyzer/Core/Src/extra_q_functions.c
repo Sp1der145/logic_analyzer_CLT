@@ -10,46 +10,48 @@
 
 extern uint8_t SPI_RX_hex;
 extern bool IT_SPI_FLAG;
-extern bool IT_SS_FLAG;
-extern Queue q1;
+extern bool IT_SS_DONE_FLAG;
+extern Queue CD_q;
 
 
-int32_t test_value = 0;
+
 
 void monitor_IT_flags(){
 	int32_t hex1;
-	int32_t hex2;
 
+	int32_t data1;
+	uint32_t count = 0;
 
+	// If the SPI transmission is complete, slap a header on it and enqueue it to the char display queue
 	if (IT_SPI_FLAG){
 		hex1 = (int32_t)(SPI_RX_hex) | 0x08000000;
-		enqueue(&q1, hex1);
+		enqueue(&CD_q, hex1);
 		IT_SPI_FLAG = false;
 	}
 
 
-
-
-
-
-	if (IT_SS_FLAG){
-		hex2 = (int32_t)(test_value) | 0x04000000;
-		enqueue(&q1, hex2);
-		test_value++;
-		IT_SS_FLAG = false;
+	// If the SS signal is done, grab the timer value, slap a header on it and enqueue it
+	if (IT_SS_DONE_FLAG){
+		count = LL_TIM_GetCounter(TIM6); // Get timer value (1 tick = .5us)
+		data1 = ((int32_t)(count/2)) | 0x04000000;
+		enqueue(&CD_q, data1);
+		IT_SS_DONE_FLAG = false; // Reset the flag
+		LL_TIM_SetCounter(TIM6, 0);   // Reset counter to 0
 	}
+
 
 	return;
 
 }
 
 void monitor_queues(){
-	int32_t error = 0x00000000;
+	int32_t error;
 
+	// Iterating through the last 3 ("hidden") values of the q1 queue buffer
 	for (volatile uint8_t i = 0; i<=2; i++){
-		if(q1.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+		if(CD_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
 			error = 0x0FFF0000;
-			enqueue(&q1, error);
+			enqueue(&CD_q, error);
 		}
 
 	}

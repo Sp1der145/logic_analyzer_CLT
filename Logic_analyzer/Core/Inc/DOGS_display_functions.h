@@ -8,6 +8,7 @@
 #ifndef SRC_DOGS_DISPLAY_FUNCTIONS_H_
 #define SRC_DOGS_DISPLAY_FUNCTIONS_H_
 
+
 void init_display();
 
 void clear_display();
