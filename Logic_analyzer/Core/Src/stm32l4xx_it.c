@@ -22,6 +22,7 @@
 #include "stm32l4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "queue.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,6 +42,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+int8_t SPI_RX_hex;
+bool IT_SPI_FLAG;
+bool IT_SS_FLAG;
+
 
 /* USER CODE END PV */
 
@@ -197,6 +202,26 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32l4xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles SPI1 global interrupt.
+  */
+void SPI1_IRQHandler(void)
+{
+  /* USER CODE BEGIN SPI1_IRQn 0 */
+	 SPI_RX_hex = (uint8_t)(SPI1->DR & 0x00FF); // reads the data and clears the flag
+
+	 IT_SPI_FLAG = true;
+	 if (LL_SPI_IsActiveFlag_OVR(SPI1)) {
+	     LL_SPI_ClearFlag_OVR(SPI1);
+	 }
+
+  /* USER CODE END SPI1_IRQn 0 */
+  /* USER CODE BEGIN SPI1_IRQn 1 */
+
+
+  /* USER CODE END SPI1_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 
