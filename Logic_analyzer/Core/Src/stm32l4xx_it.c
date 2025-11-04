@@ -41,7 +41,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-extern uint8_t SPI_RX_hex;
+extern uint16_t SPI_RX_hex;
 extern uint8_t edge;
 /* USER CODE END PV */
 
@@ -56,7 +56,7 @@ extern uint8_t edge;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern SPI_HandleTypeDef hspi1;
+
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -186,7 +186,7 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
   /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
+
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */
@@ -200,36 +200,18 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles EXTI line[9:5] interrupts.
-  */
-void EXTI9_5_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI9_5_IRQn 0 */
-
-  /* USER CODE END EXTI9_5_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_7); // clears PR7 in pending register
-
-
-
-  /* USER CODE BEGIN EXTI9_5_IRQn 1 */
-  EXTI->PR1 = (1 << 7);  // clear the flag
-
-    edge = 1;
-  /* USER CODE END EXTI9_5_IRQn 1 */
-}
-
-/**
   * @brief This function handles SPI1 global interrupt.
   */
 void SPI1_IRQHandler(void)
 {
   /* USER CODE BEGIN SPI1_IRQn 0 */
 
+	 SPI_RX_hex = (uint16_t)(0xFF & SPI1->DR);
+
   /* USER CODE END SPI1_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi1);
   /* USER CODE BEGIN SPI1_IRQn 1 */
-  SPI1->SR &= ~SPI_SR_RXNE_Msk; // clearing the RXNE flag
-  SPI_RX_hex = (uint8_t)(0xFF & SPI1->DR);
+
+
   /* USER CODE END SPI1_IRQn 1 */
 }
 
