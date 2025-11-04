@@ -44,29 +44,29 @@ void softSPI(uint8_t data){
 	for(int8_t i = 7; i>=0; i--){
 		shift = (!!(data&(1<<i)));
 		if(shift){
-			GPIOA -> ODR |= (1<<7);
+			GPIOA -> ODR |= (1<<GMOSI);
 		}
 		else{
-			GPIOA -> ODR &= ~(1<<7);
+			GPIOA -> ODR &= ~(1<<GMOSI);
 		}
 
 		for(volatile int i=0; i<50; i++);
-		GPIOA -> ODR |= (1<<5);
+		GPIOA -> ODR |= (1<<GCLK);
 		for(volatile int i=0; i<50; i++);
-		GPIOA -> ODR &= ~(1<<5);
+		GPIOA -> ODR &= ~(1<<GCLK);
 	}
 }
 
 void sendData(uint8_t byte, bool is_data) {
     if (is_data){
-    	GPIOB -> ODR |= (1<<1);
+    	GPIOB -> ODR |= (1<<GCD);
     }
     else{
-    	GPIOB -> ODR &= ~(1<<1);
+    	GPIOB -> ODR &= ~(1<<GCD);
     }
-    GPIOB -> ODR &= ~(1<<0);
+    GPIOB -> ODR &= ~(1<<GCS);
 	softSPI(byte);
-    GPIOB -> ODR |= (1<<0);
+    GPIOB -> ODR |= (1<<GCS);
 	for(volatile uint32_t i=0; i<100; i++);
 }
 
@@ -79,9 +79,9 @@ void giveData(uint8_t data) {
 }
 
 void reset(void) {
-	GPIOA -> ODR &= ~(1<<10);
+	GPIOA -> ODR &= ~(1<<GRESET);
 	for(volatile uint32_t i=0; i<10000; i++);
-    GPIOA -> ODR |= (1<<10);
+    GPIOA -> ODR |= (1<<GRESET);
 	for(volatile uint32_t i=0; i<10000; i++);
 }
 

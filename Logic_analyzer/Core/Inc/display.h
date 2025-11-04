@@ -23,6 +23,17 @@ void displayOn();
 void displayOff();
 void displayClear();
 
+#define GRESET 4
+//PB4
+#define GCLK 5
+//PA5
+#define GMOSI 6
+//PA6
+#define GCS 1
+// PA1
+#define GCD 1
+//PB1
+
 
 
 #endif /* INC_DISPLAY_H_ */

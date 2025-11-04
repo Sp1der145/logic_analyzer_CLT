@@ -94,11 +94,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 
-  lcd_init();       // Initialize DOGS102 display
 
 
-  draw_pixel(64, 32);
-  //giveData(0xAA);
+
 
   while (1)
   {
