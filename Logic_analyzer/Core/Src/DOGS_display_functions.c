@@ -35,6 +35,9 @@ void init_display(){
 	// ~2ms delay to wait after reset before init commands
 	for (uint32_t i = 0; i < 10000; i++){}
 
+
+
+
 	sendSPI_DOGS(0x3A, 0);
 	sendSPI_DOGS(0x09, 0); // Display line mode?
 	sendSPI_DOGS(0x06, 0);
@@ -65,7 +68,7 @@ void init_display(){
 void clear_display(){
 
 	// In order to cycle through, each line has 4 extra "ghost spots", meaning 16 real spots + 4 to fill a line, 80 for 4 rows
-	for (uint8_t i = 0; i < 80; i++){
+	for (uint8_t i = 0; i < 40; i++){
 		  sendSPI_DOGS(0x20, 1); // 0x20 = space (nothing)
 	  }
 	return;
@@ -147,6 +150,8 @@ void update_period(uint16_t period){
 
 
 	set_cursor(1,11); // Clearing part of the period to prevent any unwanted values staying on the screen
+	send_charDOGS(' ');
+	send_charDOGS(' ');
 	send_charDOGS(' ');
 	send_charDOGS(' ');
 
