@@ -5,8 +5,7 @@
  *      Author: trloeffler20
  */
 
-#include <stdint.h>
-#include "stm32l4xx_ll_gpio.h"	// GPIO library functions
+#include "main.h"
 #include "SoftwareSPI.h"
 
 void sendSPI(uint8_t data){

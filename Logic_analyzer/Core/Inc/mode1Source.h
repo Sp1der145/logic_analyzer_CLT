@@ -1,4 +1,10 @@
 
+
+
+
+
+
+
 /* ---------------------- ENUMS --------------------- */
 // Enums for Encoder
 enum encoderStates {UP, UP1q, UP2q, UP3q, DOWN, DW1q, DW2q, DW3q};
@@ -95,3 +101,7 @@ struct completeFSM EncB = {.q = UP, .numTransitions = 16, .table = encoderEdgeTr
 struct completeFSM btnInc = {.q = PBqUP, .numTransitions = 8, .table = pushButton};
 struct completeFSM triggerTraceFSM = {.q = pgtMiddle, .numTransitions = 6, .table = triggerCycles};
 struct completeFSM sampleRateFSM = {.q = SR_MEDIUM, .numTransitions = 5, .table = sampleRateTransitions};
+
+
+
+

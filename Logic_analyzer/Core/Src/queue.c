@@ -7,6 +7,7 @@
 
 
 #include "queue.h"
+#include "main.h"
 
 void init_queue(Queue* this){
 	this->head = 0;
@@ -19,7 +20,7 @@ bool enqueue(Queue* this , int32_t data){
 		return false;
 	}
 
-	uint32_t irqs = __getPRIMASK();
+	uint32_t irqs = __get_PRIMASK();
 	if(irqs==0){
 		__disable_irq();
 	}
@@ -43,7 +44,7 @@ bool dequeue(Queue* this, int32_t* data){
 		return false;
 	}
 
-	uint32_t irqs = __getPRIMASK();
+	uint32_t irqs = __get_PRIMASK();
 	if(irqs==0){
 		__disable_irq();
 	}

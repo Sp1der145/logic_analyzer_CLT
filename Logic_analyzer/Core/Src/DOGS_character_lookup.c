@@ -5,7 +5,7 @@
  *      Author: trloeffler20
  */
 
-#include <stdint.h>
+#include "main.h"
 
 // every character sent has an ascii value
 // we can use that ascii value as an index in this table to generate the correct hex value for the screen

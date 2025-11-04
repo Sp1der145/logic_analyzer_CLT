@@ -5,12 +5,17 @@
  *      Author: trloeffler20
  */
 
-#include <stdint.h>
-#include "stm32l4xx_ll_gpio.h"	// GPIO library functions
+#include "main.h"
+#include "queue.h"
 #include "SoftwareSPI.h"
 #include "DOGS_character_lookup.h"
 
+
+
 void init_display(){
+
+
+	init(&q1);
 
 
 	GPIOA->ODR |= (1<<7); // PA7 (A6) is RST (Reset) pin (Active low, start high to make a pulse)
@@ -52,7 +57,7 @@ void init_display(){
 
 
 
-
+	return;
 }
 
 void clear_display(){
@@ -61,6 +66,7 @@ void clear_display(){
 	for (uint8_t i = 0; i < 80; i++){
 		  sendSPI_DOGS(0x20, 1); // 0x20 = space (nothing)
 	  }
+	return;
 }
 
 
@@ -69,6 +75,7 @@ void set_cursor(uint8_t row, uint8_t col) {
       static const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x60};
       uint8_t addr = row_addr[row - 1] + (col - 1);
       sendSPI_DOGS(0x80 | addr, 0);  // command set DDRAM address
+      return;
 }
 
 
@@ -76,7 +83,7 @@ void send_charDOGS(int8_t data){
 
 	uint8_t hex = char_to_DOGShex(data);
 	sendSPI_DOGS(hex, 1);
-
+	return;
 }
 
 
@@ -112,19 +119,20 @@ void setup_display(){
 	// moving the cursor off the screen
 	set_cursor(2,18);
 
-
+	return;
 }
 
 
-void update_display_values(uint16_t period, uint16_t SPIhex){
+
+
+void update_period(uint16_t period){
+
 
 	uint8_t thousands;
 	uint8_t hundreds;
 	uint8_t tens;
 	uint8_t ones;
 
-	uint8_t SPI_LSN;	// Least significant nibble
-	uint8_t SPI_MSN;	// Most significant nibble
 
 
 	// Period calculations
@@ -139,16 +147,6 @@ void update_display_values(uint16_t period, uint16_t SPIhex){
 		hundreds = '?';
 		tens = '?';
 		ones = '?';
-	}
-
-	// SPIhex is 16 bit so we can send "??" to the display
-	if (SPIhex > 0xFF){
-			SPI_LSN = '?';
-			SPI_MSN = '?';
-	}
-	else{
-		SPI_LSN = SPIhex & 0x0F;
-		SPI_MSN = (SPIhex >> 4) & 0x0F;
 	}
 
 
@@ -167,6 +165,32 @@ void update_display_values(uint16_t period, uint16_t SPIhex){
 	send_charDOGS(ones);
 
 
+	// moving the cursor off the screen
+	set_cursor(2,18);
+
+	return;
+}
+
+
+void update_MSG(uint16_t SPIhex){
+
+
+	uint8_t SPI_LSN;	// Least significant nibble
+	uint8_t SPI_MSN;	// Most significant nibble
+
+
+
+	// SPIhex is 16 bit so we can send "??" to the display
+	if (SPIhex > 0xFF){
+			SPI_LSN = '?';
+			SPI_MSN = '?';
+	}
+	else{
+		SPI_LSN = SPIhex & 0x0F;
+		SPI_MSN = (SPIhex >> 4) & 0x0F;
+	}
+
+
 	set_cursor(2,10);
 
 	send_charDOGS(SPI_MSN);
@@ -176,9 +200,33 @@ void update_display_values(uint16_t period, uint16_t SPIhex){
 
 	// moving the cursor off the screen
 	set_cursor(2,18);
+
+	return;
 }
 
 
+void update_char_display(){
+
+	uint16_t period;
+	uint16_t hex;
+	int32_t message;
+
+	if(!dequeue(&q1, &message)){
+		return;
+	}
+
+	if ((message & 0x0F000000) == 0x0F000000){
+			hex = (uint16_t)(message >> 24);
+			update_MSG(hex);
+		}
+
+	if ((message & 0x00F00000) == 0x00F00000){
+		period = (uint16_t)(message >> 28);
+		update_period(period);
+	}
+
+
+}
 
 
 
@@ -198,6 +246,8 @@ void clear_display_values(){
 
 	// moving the cursor off the screen
 	set_cursor(2,18);
+
+	return;
 }
 
 

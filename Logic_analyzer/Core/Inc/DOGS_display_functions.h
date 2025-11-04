@@ -18,7 +18,11 @@ void send_charDOGS(int8_t data);
 
 void setup_display();
 
-void update_display_values(uint16_t period, uint16_t SPIhex);
+void update_period(uint16_t period);
+
+void update_MSG(uint16_t SPIhex);
+
+void update_char_display();
 
 void clear_display_values();
 
