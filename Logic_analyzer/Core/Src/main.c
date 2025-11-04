@@ -114,14 +114,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  //update_char_display();
+	  //Functions to be ran
+	  update_char_display();
 	  checkEncoderInputs();
 	  checkButtonFSM();
 	  monitor_IT_flags();
 	  monitor_queues();
-	  uint32_t rate = getSampleRate();
-	  uint8_t trace = getTriggerTrace();
+
+	  //Temo testing vals
+	  //uint32_t rate = getSampleRate();
+	  //uint8_t trace = getTriggerTrace();
 
 
 

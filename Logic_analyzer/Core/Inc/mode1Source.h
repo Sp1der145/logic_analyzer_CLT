@@ -1,6 +1,3 @@
-#ifndef MODE1SOURCE_H
-#define MODE1SOURCE_H
-
 #include "main.h"
 
 /* ---------------------- ENUMS --------------------- */
@@ -68,5 +65,3 @@ void checkChannelB(void);
 void nextTriggerTrace(void);
 void checkEncoderInputs(void);
 void checkButtonFSM(void);
-
-#endif // MODE1SOURCE_H
