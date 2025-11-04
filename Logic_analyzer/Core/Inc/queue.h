@@ -15,11 +15,8 @@
 typedef struct {int16_t head; int16_t load; int32_t buffer[QUEUE_DEPTH];} Queue;
 
 
-Queue q1; //Character Display Queue
 
-
-
-void init(Queue* this);
+void init_queue(Queue* this);
 
 bool enqueue(Queue* this, int32_t data);
 bool dequeue(Queue* this, int32_t* data);

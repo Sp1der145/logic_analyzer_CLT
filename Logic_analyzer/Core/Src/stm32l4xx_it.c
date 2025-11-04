@@ -21,7 +21,6 @@
 #include "main.h"
 #include "stm32l4xx_it.h"
 #include "queue.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -44,6 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 int32_t SPI_RX_hex;
+extern Queue q1;
 
 /* USER CODE END PV */
 
@@ -208,7 +208,7 @@ void SPI1_IRQHandler(void)
 {
   /* USER CODE BEGIN SPI1_IRQn 0 */
 
-	 SPI_RX_hex = (int32_t)(0xFF & SPI1->DR) | 0x0F000000;
+	 SPI_RX_hex = (int32_t)(0xFF & SPI1->DR) | 0x08000000;
 	 enqueue(&q1, SPI_RX_hex);
 
   /* USER CODE END SPI1_IRQn 0 */

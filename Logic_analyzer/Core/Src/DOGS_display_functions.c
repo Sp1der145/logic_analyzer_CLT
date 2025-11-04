@@ -10,12 +10,14 @@
 #include "SoftwareSPI.h"
 #include "DOGS_character_lookup.h"
 
+extern Queue q1;
+
 
 
 void init_display(){
 
 
-	init(&q1);
+	init_queue(&q1);
 
 
 	GPIOA->ODR |= (1<<7); // PA7 (A6) is RST (Reset) pin (Active low, start high to make a pulse)
@@ -215,12 +217,14 @@ void update_char_display(){
 		return;
 	}
 
-	if ((message & 0x0F000000) == 0x0F000000){
+	// 8 in the header means SPI
+	if ((message & 0x0F000000) == 0x08000000){
 			hex = (uint16_t)(message >> 24);
 			update_MSG(hex);
 		}
 
-	if ((message & 0x00F00000) == 0x00F00000){
+	// 4 in the header means period
+	if ((message & 0x0F00000) == 0x00400000){
 		period = (uint16_t)(message >> 28);
 		update_period(period);
 	}

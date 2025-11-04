@@ -9,6 +9,13 @@
 #include "queue.h"
 #include "main.h"
 
+
+Queue q1; //Character Display Queue
+
+
+
+
+
 void init_queue(Queue* this){
 	this->head = 0;
 	(*this).load = 0;
