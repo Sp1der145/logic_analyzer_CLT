@@ -44,13 +44,8 @@
 /* USER CODE BEGIN PV */
 int8_t SPI_RX_hex;
 bool IT_SPI_FLAG;
-extern Queue q1;
+bool IT_SS_FLAG;
 
-
-
-
-uint8_t test_array1[20];
-uint8_t test_index1 = 0;
 
 /* USER CODE END PV */
 
@@ -216,15 +211,6 @@ void SPI1_IRQHandler(void)
   /* USER CODE BEGIN SPI1_IRQn 0 */
 	 SPI_RX_hex = (uint8_t)(SPI1->DR & 0x00FF); // reads the data and clears the flag
 
-/* test array to see what values the ISR is receiving
-	 test_array1[test_index1] = SPI_RX_hex;
-	 test_index1++;
-
-	 if(test_index1 > 10){
-		test_index1 = 0;
-	 }
-
-*/
 	 IT_SPI_FLAG = true;
 	 if (LL_SPI_IsActiveFlag_OVR(SPI1)) {
 	     LL_SPI_ClearFlag_OVR(SPI1);

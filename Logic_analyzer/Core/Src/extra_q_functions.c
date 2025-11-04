@@ -10,27 +10,33 @@
 
 extern uint8_t SPI_RX_hex;
 extern bool IT_SPI_FLAG;
+extern bool IT_SS_FLAG;
 extern Queue q1;
 
-uint8_t test_array[20];
-uint8_t test_index = 0;
+
+int32_t test_value = 0;
 
 void monitor_IT_flags(){
-	int32_t hex;
+	int32_t hex1;
+	int32_t hex2;
 
 
 	if (IT_SPI_FLAG){
-		test_array[test_index] = SPI_RX_hex;
-		test_index++;
-
-		if(test_index > 12){
-			test_index =0;
-		}
-
-
-		hex = (int32_t)(SPI_RX_hex) | 0x08000000;
-		enqueue(&q1, hex);
+		hex1 = (int32_t)(SPI_RX_hex) | 0x08000000;
+		enqueue(&q1, hex1);
 		IT_SPI_FLAG = false;
+	}
+
+
+
+
+
+
+	if (IT_SS_FLAG){
+		hex2 = (int32_t)(test_value) | 0x04000000;
+		enqueue(&q1, hex2);
+		test_value++;
+		IT_SS_FLAG = false;
 	}
 
 	return;
