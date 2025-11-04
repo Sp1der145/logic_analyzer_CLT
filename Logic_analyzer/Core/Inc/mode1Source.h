@@ -1,13 +1,15 @@
-
 /* ---------------------- ENUMS --------------------- */
 // Enums for Encoder
 enum encoderStates {UP, UP1q, UP2q, UP3q, DOWN, DW1q, DW2q, DW3q};
 enum encoderOutput {PRESSED, UNPRESSED};
+enum encoderInput {GPLOW, GPHIGH};
 // Enums for button
 enum buttonStates{PBqUP, PBqDOWN, PBqUPweak, PBqDOWNweak};
 enum buttonOutput{PBUP, PBDOWN, PBRELEASE, PBPRESS};
 enum buttonInput{PBlow, PBhigh};
 enum bNum{ptgTop, pgtMiddle, pgtBottom, ngtTop, ngtMiddle, ngtBottom};
+enum triggerPressDown{buttonPress};
+enum sampleRateLevel{SR_LOW, SR_MEDIUM, SR_HIGH};
 
 /* ---------------------- INITS --------------------- */
 //Input Var Initialization
@@ -18,18 +20,21 @@ volatile uint8_t P_B_in = UNPRESSED;
 volatile uint8_t C_A_in;
 //GPIO IN B
 volatile uint8_t C_B_in;
-// Encoder Channel A Input Mask			WILL NEED A DIFF INPUT PIN		INPUT MASK FOR GPIO (CHANGE INPUT PIN)
-volatile uint8_t inPA9 = (GPIOA->IDR & (1 << 9)) == 0;
-// Encoder Channel B Input Mask 		WILL NEED A DIFF INPUT PIN		INPUT MASK FOR GPIO (CHANGE INPUT PIN)
-volatile uint8_t inPA10 = (GPIOA->IDR & (1 << 10)) == 0;
 
-//Button input mask						WILL NEED A DIFF INPUT PIN		INPUT MASK FOR GPIO (CHANGE INPUT PIN)
-volatile uint8_t inPA8 = (GPIOA-> IDR &(1<<8)) == 0;
+
+/* ---------------------- QUEUE STUFF --------------------- */
+//Externs for QUEUES			PUT IN HEADER FILE!!!!
+extern uint8_t triggerTrace;    // current state from trigger FSM out
+extern uint32_t sampleRate;     // current sample divider N
+
+// Simple var to share safely between files
+static volatile uint8_t _triggerTrace = 0;
+static volatile uint32_t _sampleRate = 5000; // default sampleRate
 
 
 /* ---------------------- Q-TRANSITION TABLES --------------------- */
 // q-Transition table set up
-struct qTransition {uint8_t old;uint8_t in;uint8_t new;uint8_t out;};
+struct qTransition {uint8_t old;uint8_t in;uint8_t new;uint16_t out;};
 
 // Encoder Edge Detector
 const struct qTransition encoderEdgeTransitions[16] = {
@@ -81,8 +86,18 @@ const struct qTransition sampleRateTransitions[6] = {
     {SR_MEDIUM, UNPRESSED, SR_LOW, 1000}, // decrease
 };
 
+/* ------------------------------------------------------ */
+/* ---------------------- FSM STRUCTS ------------------- */
+/* ------------------------------------------------------ */
+// Struct for State Machine
+struct completeFSM {
+	volatile uint8_t q;
+	const uint8_t numTransitions;
+	const struct qTransition *table;
+};
 
-/* ---------------------- CW/CCW Checker START --------------------- */
+/*
+ *  ---------------------- CW/CCW Checker START --------------------- */
 // FSM Structs for Encoder pin A & Encoder pin B
 struct completeFSM EncA = { .q = (uint8_t) 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 struct completeFSM EncB = { .q = (uint8_t) 1, .numTransitions = 16, .table = encoderEdgeTransitions };
@@ -90,8 +105,6 @@ struct completeFSM EncB = { .q = (uint8_t) 1, .numTransitions = 16, .table = enc
 /* ---------------------------------------------- */
 /* ---------------------- FSM's ----------------- */
 /* ---------------------------------------------- */
-struct completeFSM EncA = {.q = UP, .numTransitions = 16, .table = encoderEdgeTransitions};
-struct completeFSM EncB = {.q = UP, .numTransitions = 16, .table = encoderEdgeTransitions};
 struct completeFSM btnInc = {.q = PBqUP, .numTransitions = 8, .table = pushButton};
 struct completeFSM triggerTraceFSM = {.q = pgtMiddle, .numTransitions = 6, .table = triggerCycles};
 struct completeFSM sampleRateFSM = {.q = SR_MEDIUM, .numTransitions = 5, .table = sampleRateTransitions};
