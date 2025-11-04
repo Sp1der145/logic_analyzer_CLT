@@ -10,14 +10,14 @@
 #include "SoftwareSPI.h"
 #include "DOGS_character_lookup.h"
 
-extern Queue q1;
+extern Queue CD_q;
 
 
 
 void init_display(){
 
 
-	init_queue(&q1);
+	init_queue(&CD_q); // Initialize the Character Display queue
 
 
 	GPIOA->ODR |= (1<<7); // PA7 (A6) is RST (Reset) pin (Active low, start high to make a pulse)
@@ -57,10 +57,10 @@ void init_display(){
 	sendSPI_DOGS(0x1B, 0);
 	sendSPI_DOGS(0x3C, 0);
 
-
-
 	return;
 }
+
+
 
 void clear_display(){
 
@@ -95,21 +95,15 @@ void setup_display(){
 
 	clear_display();
 
-	/* For frequency
-	set_cursor(1,4);
-	send_charDOGS('H');
-	send_charDOGS('z');
-	send_charDOGS(':');
-	*/
-
-	/* For period */
-	set_cursor(1,4);
+	set_cursor(1,3);
+	send_charDOGS('C');
+	send_charDOGS('S');
+	send_charDOGS(' ');
 	send_charDOGS('u');
 	send_charDOGS('s');
 	send_charDOGS(':');
 
-
-	set_cursor(2,3);
+	set_cursor(2,5);
 	send_charDOGS('M');
 	send_charDOGS('S');
 	send_charDOGS('G');
@@ -144,7 +138,7 @@ void update_period(uint16_t period){
 		tens = (period - (hundreds*100) - (thousands*1000)) / 10;
 		ones = period - (thousands*1000) - (hundreds*100) - (tens*10);
 	}
-	else{
+	else{ // If period is over 9999, display ????
 		thousands = '?';
 		hundreds = '?';
 		tens = '?';
@@ -152,7 +146,11 @@ void update_period(uint16_t period){
 	}
 
 
-	set_cursor(1,8);
+	set_cursor(1,11); // Clearing part of the period to prevent any unwanted values staying on the screen
+	send_charDOGS(' ');
+	send_charDOGS(' ');
+
+	set_cursor(1,10);
 
 
 	if (thousands != 0){
@@ -193,12 +191,10 @@ void update_MSG(uint16_t SPIhex){
 	}
 
 
-	set_cursor(2,10);
+	set_cursor(2,12);
 
 	send_charDOGS(SPI_MSN);
 	send_charDOGS(SPI_LSN);
-
-
 
 	// moving the cursor off the screen
 	set_cursor(2,18);
@@ -207,59 +203,40 @@ void update_MSG(uint16_t SPIhex){
 }
 
 
-void update_char_display(){
+
+
+
+void update_char_display(){ // task
 
 	uint16_t period;
 	uint16_t hex;
 	int32_t message;
 
-	if(!dequeue(&q1, &message)){
+	if(!dequeue(&CD_q, &message)){
 		return;
 	}
 
 	// 0x0FFF in the header means buffer overflow
 	if ((message & 0x0FFF0000) == 0x0FFF0000){
-		hex = (uint16_t)(message & 0xFF);
-		update_period(10000);
+		update_period(10000); // Display ???? to indicate error
 	}
 
 
-	// 0x0800 in the header means SPI
-	if ((message & 0x0F000000) == 0x08000000){
+	// 0x0800 in the header means lower 16 bits are SPI data
+	else if ((message & 0x0F000000) == 0x08000000){
 			hex = (uint16_t)(message & 0xFF);
 			update_MSG(hex);
 		}
 
-	// 0x0400 in the header means period
+	// 0x0400 in the header means lower 16 bits are CS period
 	else if ((message & 0x0F000000) == 0x04000000){
-		period = (uint16_t)(message >> 28);
+		period = (uint16_t)(message & 0xFFFF);
 		update_period(period);
 	}
 
 
 }
 
-
-
-
-void clear_display_values(){
-
-	set_cursor(1,8);
-	send_charDOGS(' ');
-	send_charDOGS(' ');
-	send_charDOGS(' ');
-	send_charDOGS(' ');
-
-
-	set_cursor(2,10);
-	send_charDOGS(' ');
-	send_charDOGS(' ');
-
-	// moving the cursor off the screen
-	set_cursor(2,18);
-
-	return;
-}
 
 
 

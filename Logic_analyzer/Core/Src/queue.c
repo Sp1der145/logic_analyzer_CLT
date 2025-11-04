@@ -10,7 +10,7 @@
 #include "main.h"
 
 
-Queue q1; //Character Display Queue
+Queue CD_q; //Character Display Queue
 
 
 
