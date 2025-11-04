@@ -23,6 +23,8 @@
 /* USER CODE BEGIN Includes */
 #include "DOGS_display_functions.h"
 #include "extra_q_functions.h"
+#include "mode1Source.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,9 +115,15 @@ int main(void)
   while (1)
   {
 
-	  update_char_display();
+	  //update_char_display();
+	  checkEncoderInputs();
+	  checkButtonFSM();
 	  monitor_IT_flags();
 	  monitor_queues();
+	  uint32_t rate = getSampleRate();
+	  uint8_t trace = getTriggerTrace();
+
+
 
     /* USER CODE END WHILE */
 
