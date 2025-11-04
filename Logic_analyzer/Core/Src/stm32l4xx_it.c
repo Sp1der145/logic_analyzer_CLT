@@ -42,8 +42,15 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-int32_t SPI_RX_hex;
+int8_t SPI_RX_hex;
+bool IT_SPI_FLAG;
 extern Queue q1;
+
+
+
+
+uint8_t test_array1[20];
+uint8_t test_index1 = 0;
 
 /* USER CODE END PV */
 
@@ -207,9 +214,21 @@ void SysTick_Handler(void)
 void SPI1_IRQHandler(void)
 {
   /* USER CODE BEGIN SPI1_IRQn 0 */
+	 SPI_RX_hex = (uint8_t)(SPI1->DR & 0x00FF); // reads the data and clears the flag
 
-	 SPI_RX_hex = (int32_t)(0xFF & SPI1->DR) | 0x08000000;
-	 enqueue(&q1, SPI_RX_hex);
+/* test array to see what values the ISR is receiving
+	 test_array1[test_index1] = SPI_RX_hex;
+	 test_index1++;
+
+	 if(test_index1 > 10){
+		test_index1 = 0;
+	 }
+
+*/
+	 IT_SPI_FLAG = true;
+	 if (LL_SPI_IsActiveFlag_OVR(SPI1)) {
+	     LL_SPI_ClearFlag_OVR(SPI1);
+	 }
 
   /* USER CODE END SPI1_IRQn 0 */
   /* USER CODE BEGIN SPI1_IRQn 1 */

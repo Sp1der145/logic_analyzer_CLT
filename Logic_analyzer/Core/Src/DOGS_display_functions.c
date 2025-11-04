@@ -217,14 +217,21 @@ void update_char_display(){
 		return;
 	}
 
-	// 8 in the header means SPI
+	// 0x0FFF in the header means buffer overflow
+	if ((message & 0x0FFF0000) == 0x0FFF0000){
+		hex = (uint16_t)(message & 0xFF);
+		update_period(10000);
+	}
+
+
+	// 0x0800 in the header means SPI
 	if ((message & 0x0F000000) == 0x08000000){
-			hex = (uint16_t)(message >> 24);
+			hex = (uint16_t)(message & 0xFF);
 			update_MSG(hex);
 		}
 
-	// 4 in the header means period
-	if ((message & 0x0F00000) == 0x00400000){
+	// 0x0400 in the header means period
+	else if ((message & 0x0F000000) == 0x04000000){
 		period = (uint16_t)(message >> 28);
 		update_period(period);
 	}

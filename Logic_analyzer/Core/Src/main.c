@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "DOGS_display_functions.h"
+#include "extra_q_functions.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,7 +96,9 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-
+  SPI1->CR1 |= SPI_CR1_SPE_Msk; // Enabling SPI1
+  SPI1->CR2 |= SPI_CR2_RXNEIE_Msk; // Enable receive interrupts
+  __enable_irq();
 
   init_display();
   setup_display();
@@ -111,6 +114,8 @@ int main(void)
   {
 
 	  update_char_display();
+	  monitor_IT_flags();
+	  monitor_queues();
 
     /* USER CODE END WHILE */
 

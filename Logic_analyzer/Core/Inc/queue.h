@@ -12,7 +12,7 @@
 #include <stdint.h>
 #define QUEUE_DEPTH 10
 
-typedef struct {int16_t head; int16_t load; int32_t buffer[QUEUE_DEPTH];} Queue;
+typedef struct {int16_t head; int16_t load; int32_t buffer[QUEUE_DEPTH+3];} Queue;
 
 
 
