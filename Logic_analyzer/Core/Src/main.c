@@ -98,10 +98,10 @@ int main(void)
 
 
   draw_pixel(64, 32);
+  //giveData(0xAA);
 
   while (1)
   {
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

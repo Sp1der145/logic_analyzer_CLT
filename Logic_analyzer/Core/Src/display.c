@@ -50,9 +50,9 @@ void softSPI(uint8_t data){
 			GPIOA -> ODR &= ~(1<<7);
 		}
 
-		for(volatile int i=0; i<500; i++);
+		for(volatile int i=0; i<50; i++);
 		GPIOA -> ODR |= (1<<5);
-		for(volatile int i=0; i<500; i++);
+		for(volatile int i=0; i<50; i++);
 		GPIOA -> ODR &= ~(1<<5);
 	}
 }
@@ -67,6 +67,7 @@ void sendData(uint8_t byte, bool is_data) {
     GPIOB -> ODR &= ~(1<<0);
 	softSPI(byte);
     GPIOB -> ODR |= (1<<0);
+	for(volatile uint32_t i=0; i<100; i++);
 }
 
 void command(uint8_t cmd) {
@@ -87,7 +88,7 @@ void reset(void) {
 void lcd_init(void) {
 	reset();
 
-    displayOff();
+	command(0xAE);
     command(0x40); // Set display start line = 0
     command(0xA1); // Reverse view
     command(0xC0); // COM mode
@@ -101,13 +102,13 @@ void lcd_init(void) {
     command(0xFA); // Temperature curve
     command(0x90); // Temperature curve
     displayClear();
-    displayOn();
+	command(0xAF);
 }
 
 void displayClear() {
-    for(uint8_t page = 0; page < 8; page++){
+    for(int page = 0; page < 8; page++){
         command(0xB0 | page);                      // Set page
-        for(uint8_t col = 0; col < 132; col++){
+        for(int col = 0; col < 132; col++){
             command(0x10 | ((col >> 4) & 0x0F));
             command(0x00 | (col & 0x0F));
             giveData(0x00);                        // Clear each byte
