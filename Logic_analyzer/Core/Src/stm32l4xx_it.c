@@ -44,8 +44,7 @@
 /* USER CODE BEGIN PV */
 int8_t SPI_RX_hex;
 bool IT_SPI_FLAG;
-bool IT_SS_FLAG;
-
+bool IT_SS_DONE_FLAG;
 
 /* USER CODE END PV */
 
@@ -210,17 +209,45 @@ void SPI1_IRQHandler(void)
 {
   /* USER CODE BEGIN SPI1_IRQn 0 */
 	 SPI_RX_hex = (uint8_t)(SPI1->DR & 0x00FF); // reads the data and clears the flag
-
-	 IT_SPI_FLAG = true;
-	 if (LL_SPI_IsActiveFlag_OVR(SPI1)) {
-	     LL_SPI_ClearFlag_OVR(SPI1);
-	 }
+	 IT_SPI_FLAG = true; // Set a flag high so the data can be enqueued elsewhere
 
   /* USER CODE END SPI1_IRQn 0 */
   /* USER CODE BEGIN SPI1_IRQn 1 */
 
 
   /* USER CODE END SPI1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_11) != RESET)
+  {
+    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_11);
+    /* USER CODE BEGIN LL_EXTI_LINE_11 */
+
+    /* USER CODE END LL_EXTI_LINE_11 */
+  }
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+
+  if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_11)) { // If pin is high (rising edge) (end of SS signal)
+	  LL_TIM_DisableCounter(TIM6); // Stop Timer
+	  IT_SS_DONE_FLAG = true; // Set a flag high so the timer can be read elsewhere
+
+  }
+  else{ // If pin is low (falling edge) (start of SS signal)
+	  LL_TIM_EnableCounter(TIM6); // Start Timer
+  }
+
+
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

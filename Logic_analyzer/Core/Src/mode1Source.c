@@ -1,38 +1,36 @@
-/*
- * mode1Source.c
- *
- *  Created on: Oct 8, 2025
- *      Author: crupton23
- */
-
 #include "main.h"
 #include "mode1Source.h"
 
 /* ------------------------------------------------------ */
-/* ---------------------- GLOBAL VARS -------------------- */
+/* ---------------------- QUEUE VARS -------------------- */
 /* ------------------------------------------------------ */
+// Only queue vars are global (shared)
+volatile uint8_t _triggerTrace = 0;  // Can be 0–5
+volatile uint32_t _sampleRate = 5;   // Can be 0–10
 
-// Input vars
-volatile uint8_t P_A_in = UNPRESSED;
-volatile uint8_t P_B_in = UNPRESSED;
-volatile uint8_t C_A_in;
-volatile uint8_t C_B_in;
-
-// Queue backing vars (internal)
-volatile uint8_t _triggerTrace = 0; //Can be 0-5
-volatile uint32_t _sampleRate = 500; //Can be 500, 1000, 10000
+/* ------------------------------------------------------ */
+/* ------------------ LOCAL VARS --------------- */
+/* ------------------------------------------------------ */
+// Input and FSM variables are file-private
+static uint8_t P_A_in = UNPRESSED;
+static uint8_t P_B_in = UNPRESSED;
+static uint8_t C_A_in;
+static uint8_t C_B_in;
 
 // GPIO input snapshots
-volatile uint8_t inPA9;
-volatile uint8_t inPA10;
-volatile uint8_t inPA8;
+static uint8_t inPA9;
+static uint8_t inPA10;
+static uint8_t inPA8;
+
+// FSM Don't need this??
+//static uint8_t getFSMoutput(struct completeFSM *x, uint8_t in){};
 
 /* ------------------------------------------------------ */
 /* ---------------------- FSM TABLES --------------------- */
 /* ------------------------------------------------------ */
 
 // Encoder Edge Detector
-const struct qTransition encoderEdgeTransitions[16] = {
+static const struct qTransition encoderEdgeTransitions[16] = {
     {UP, GPLOW, UP1q, UNPRESSED},
     {UP, GPHIGH, UP, UNPRESSED},
     {UP1q, GPLOW, UP2q, UNPRESSED},
@@ -52,7 +50,7 @@ const struct qTransition encoderEdgeTransitions[16] = {
 };
 
 // Button Edge Detector
-const struct qTransition pushButton[8] = {
+static const struct qTransition pushButton[8] = {
     {PBqUP, PBlow, PBqUPweak, PBUP},
     {PBqUP, PBhigh, PBqUP, PBUP},
     {PBqDOWN, PBlow, PBqDOWN, PBDOWN},
@@ -63,39 +61,28 @@ const struct qTransition pushButton[8] = {
     {PBqDOWNweak, PBhigh, PBqUP, PBRELEASE},
 };
 
-// Trigger Cycle FSM (Outputs 0-5)
-const struct qTransition triggerCycles[6] = {
-    {ptgTop, 1, pgtMiddle, pgtMiddle}, //Out 1
-    {pgtMiddle, 1, pgtBottom, pgtBottom}, //Out 2
-    {pgtBottom, 1, ngtTop, ngtTop}, //Out 3
-    {ngtTop, 1, ngtMiddle, ngtMiddle}, //Out 4
-    {ngtMiddle, 1, ngtBottom, ngtBottom}, //Out 5
-    {ngtBottom, 1, ptgTop, ptgTop}, //Out 0
-};
-
-// Sample rate FSM (Outputs 1, 2, OR 3
-const struct qTransition sampleRateTransitions[5] = {
-    {SR_LOW, PRESSED, SR_MEDIUM, 1000},
-    {SR_MEDIUM, PRESSED, SR_HIGH, 5000},
-    {SR_HIGH, PRESSED, SR_LOW, 500},
-    {SR_HIGH, UNPRESSED, SR_MEDIUM, 1000},
-    {SR_MEDIUM, UNPRESSED, SR_LOW, 500},
+// Trigger Cycle FSM (Outputs 0–5)
+static const struct qTransition triggerCycles[6] = {
+    {ptgTop, 1, pgtMiddle, pgtMiddle},
+    {pgtMiddle, 1, pgtBottom, pgtBottom},
+    {pgtBottom, 1, ngtTop, ngtTop},
+    {ngtTop, 1, ngtMiddle, ngtMiddle},
+    {ngtMiddle, 1, ngtBottom, ngtBottom},
+    {ngtBottom, 1, ptgTop, ptgTop},
 };
 
 /* ------------------------------------------------------ */
 /* ---------------------- FSM STRUCTS -------------------- */
 /* ------------------------------------------------------ */
-struct completeFSM EncA = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
-struct completeFSM EncB = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
-struct completeFSM btnInc = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
-struct completeFSM triggerTraceFSM = { .q = pgtMiddle, .numTransitions = 6, .table = triggerCycles };
-struct completeFSM sampleRateFSM = { .q = SR_MEDIUM, .numTransitions = 5, .table = sampleRateTransitions };
+static struct completeFSM EncA = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
+static struct completeFSM EncB = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
+static struct completeFSM btnInc = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
+static struct completeFSM btnDec = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
+static struct completeFSM triggerTraceFSM = { .q = pgtMiddle, .numTransitions = 6, .table = triggerCycles };
 
 /* ------------------------------------------------------ */
 /* ---------------------- GETTERS/SETTERS ---------------- */
 /* ------------------------------------------------------ */
-//THESE SHOULD BE USED/SENT TO LOGAN SO HE CAN GET THE CURRENT SAMPLE RATE AND TRIGGER TRACE
-//This means that whenever Logan goes to draw he needs the current triggerTrace and sampleRate of the system
 void setTriggerTrace(uint8_t val) { _triggerTrace = val; }
 uint8_t getTriggerTrace(void) { return _triggerTrace; }
 
@@ -105,11 +92,10 @@ uint32_t getSampleRate(void) { return _sampleRate; }
 /* ------------------------------------------------------ */
 /* ---------------------- FSM HELPER FXN ----------------- */
 /* ------------------------------------------------------ */
-
-uint8_t getFSMoutput(struct completeFSM *x, uint8_t in) {
+static uint8_t getFSMoutput(struct completeFSM *x, uint8_t in) {
     uint8_t out = 0;
     for (int row = 0; row < x->numTransitions; row++) {
-        if (x->table[row].old == (x->q) && x->table[row].in == in) {
+        if (x->table[row].old == x->q && x->table[row].in == in) {
             x->q = x->table[row].new;
             out = x->table[row].out;
             break;
@@ -121,7 +107,6 @@ uint8_t getFSMoutput(struct completeFSM *x, uint8_t in) {
 /* ------------------------------------------------------ */
 /* ---------------------- INPUT READ FXN ----------------- */
 /* ------------------------------------------------------ */
-
 static inline void updateInputs(void) {
     inPA9  = (GPIOA->IDR & (1 << 9))  ? 1 : 0;
     inPA10 = (GPIOA->IDR & (1 << 10)) ? 1 : 0;
@@ -131,7 +116,6 @@ static inline void updateInputs(void) {
 /* ------------------------------------------------------ */
 /* ---------------------- FSM TASKS ---------------------- */
 /* ------------------------------------------------------ */
-
 void checkChannelA(void) {
     updateInputs();
 
@@ -139,9 +123,11 @@ void checkChannelA(void) {
     C_B_in = getFSMoutput(&EncB, inPA10);
 
     if (C_A_in != P_A_in) {
-        uint32_t newRate = getFSMoutput(&sampleRateFSM,
-                            (C_A_in != C_B_in) ? PRESSED : UNPRESSED);
-        setSampleRate(newRate);
+        if (C_A_in != C_B_in) {
+            if (_sampleRate > 0) _sampleRate--;
+        } else {
+            if (_sampleRate < 10) _sampleRate++;
+        }
         P_A_in = C_A_in;
     }
 }
@@ -153,9 +139,11 @@ void checkChannelB(void) {
     C_B_in = getFSMoutput(&EncB, inPA10);
 
     if (C_B_in != P_B_in) {
-        uint32_t newRate = getFSMoutput(&sampleRateFSM,
-                            (C_B_in == C_A_in) ? PRESSED : UNPRESSED);
-        setSampleRate(newRate);
+        if (C_B_in == C_A_in) {
+            if (_sampleRate > 0) _sampleRate--;
+        } else {
+            if (_sampleRate < 10) _sampleRate++;
+        }
         P_B_in = C_B_in;
     }
 }
@@ -164,19 +152,16 @@ void nextTriggerTrace(void) {
     updateInputs();
 
     uint8_t buttonPress = getFSMoutput(&btnInc, inPA8);
+    //uint8_t buttonPress = getFSMoutput(&btnDec, inPA8); Diff Name & Input required??
     uint8_t newTrace = getFSMoutput(&triggerTraceFSM, buttonPress);
-    // Only update when the FSM actually changes (buttonPress == PBPRESS)
     if (buttonPress == 1) {
         setTriggerTrace(newTrace);
     }
-
-
 }
 
 /* ------------------------------------------------------ */
 /* ---------------------- TASK CALLERS ------------------- */
 /* ------------------------------------------------------ */
-
 void checkEncoderInputs(void) {
     checkChannelA();
     checkChannelB();
