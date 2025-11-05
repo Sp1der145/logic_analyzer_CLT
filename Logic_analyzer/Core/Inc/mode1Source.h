@@ -1,3 +1,6 @@
+#ifndef MODE1SOURCE_H_
+#define MODE1SOURCE_H_
+
 #include "main.h"
 
 /* ---------------------- ENUMS --------------------- */
@@ -5,10 +8,13 @@
 enum encoderStates {UP, UP1q, UP2q, UP3q, DOWN, DW1q, DW2q, DW3q};
 enum encoderOutput {PRESSED, UNPRESSED};
 enum encoderInput {GPLOW, GPHIGH};
+
 // Enums for button
 enum buttonStates {PBqUP, PBqDOWN, PBqUPweak, PBqDOWNweak};
 enum buttonOutput {PBUP, PBDOWN, PBRELEASE, PBPRESS};
 enum buttonInput {PBlow, PBhigh};
+
+// Enum for trigger trace FSM
 enum bNum {ptgTop, pgtMiddle, pgtBottom, ngtTop, ngtMiddle, ngtBottom};
 
 /* ---------------------- STRUCTS --------------------- */
@@ -26,25 +32,10 @@ struct completeFSM {
 };
 
 /* ---------------------- EXTERN VARIABLES --------------------- */
-
-// Input vars
-extern volatile uint8_t P_A_in;
-extern volatile uint8_t P_B_in;
-extern volatile uint8_t C_A_in;
-extern volatile uint8_t C_B_in;
-
-// FSM structs
-extern struct completeFSM EncA;
-extern struct completeFSM EncB;
-extern struct completeFSM btnInc;
-extern struct completeFSM triggerTraceFSM;
-
-// Transition tables
-extern const struct qTransition encoderEdgeTransitions[16];
-extern const struct qTransition pushButton[8];
-extern const struct qTransition triggerCycles[6];
-
-// Shared queue data (with internal storage in mode1Source.c)
+/*
+ * Only queue-related globals are shared — all other vars and FSMs
+ * are static and private to mode1Source.c.
+ */
 extern volatile uint8_t _triggerTrace;
 extern volatile uint32_t _sampleRate;
 
@@ -55,10 +46,12 @@ uint8_t getTriggerTrace(void);
 void setSampleRate(uint8_t val);
 uint32_t getSampleRate(void);
 
-uint8_t getFSMoutput(struct completeFSM *x, uint8_t in);
+//static uint8_t getFSMoutput(struct completeFSM *x, uint8_t in)
 
 void checkChannelA(void);
 void checkChannelB(void);
 void nextTriggerTrace(void);
 void checkEncoderInputs(void);
 void checkButtonFSM(void);
+
+#endif /* MODE1SOURCE_H_ */
