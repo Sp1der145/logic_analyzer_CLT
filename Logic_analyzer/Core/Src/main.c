@@ -1,4 +1,4 @@
-/* USER CODE BEGIN Header */
+ /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.c
@@ -100,8 +100,9 @@ int main(void)
   SPI1->CR2 |= SPI_CR2_RXNEIE_Msk; // Enable receive interrupts
   __enable_irq();
 
-  init_display();
-  setup_display();
+  //init_display();
+  //setup_display();
+  lcd_init();
 
 
 
@@ -110,12 +111,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  displayClear();
+  for(volatile int i = 0; i<1000; i++){}
   while (1)
   {
-	  GPIOA->ODR ^= (1<<3);
+	  //GPIOA->ODR ^= (1<<3);
+	  draw();
+	  /*command(0xB1);
+  	  for(int i = 0; i<8; i++){
+  		  for(int j = 0; j<4; j++){
+		  	  giveData(data[i]);
+	  	  }
+  		  if(i>0){
+  			  if(data[i]!=data[i-1]){
+  			  	  giveData(0xFF);
+  			  }
+  		  }
+  	  }*/
+	  //complete = true;
+	  /*GPIOA->ODR ^= (1<<3);
 	  update_char_display();
 	  monitor_IT_flags();
 	  monitor_queues();
+	  monitor_queues();*/
 
     /* USER CODE END WHILE */
 
