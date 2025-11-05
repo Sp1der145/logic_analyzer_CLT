@@ -39,8 +39,9 @@ void displayOff(){
 	return;
 }
 
-void softSPI(uint8_t data){
+void softSPI(uint8_t data, bool is_data){
 	uint8_t shift;
+    GPIOA -> ODR &= ~(1<<GCS);
 	for(int8_t i = 7; i>=0; i--){
 		shift = (!!(data&(1<<i)));
 		if(shift){
@@ -55,6 +56,7 @@ void softSPI(uint8_t data){
 		for(volatile int i=0; i<50; i++);
 		GPIOA -> ODR &= ~(1<<GCLK);
 	}
+    GPIOA -> ODR |= (1<<GCS);
 }
 
 void sendData(uint8_t byte, bool is_data) {
@@ -64,10 +66,10 @@ void sendData(uint8_t byte, bool is_data) {
     else{
     	GPIOB -> ODR &= ~(1<<GCD);
     }
-    GPIOB -> ODR &= ~(1<<GCS);
-	softSPI(byte);
-    GPIOB -> ODR |= (1<<GCS);
-	for(volatile uint32_t i=0; i<100; i++);
+
+	softSPI(byte, is_data);
+
+	for(volatile uint32_t i=0; i<100; i++); //For debugging pleasure
 }
 
 void command(uint8_t cmd) {
@@ -79,9 +81,9 @@ void giveData(uint8_t data) {
 }
 
 void reset(void) {
-	GPIOA -> ODR &= ~(1<<GRESET);
+	GPIOB -> ODR &= ~(1<<GRESET);
 	for(volatile uint32_t i=0; i<10000; i++);
-    GPIOA -> ODR |= (1<<GRESET);
+    GPIOB -> ODR |= (1<<GRESET);
 	for(volatile uint32_t i=0; i<10000; i++);
 }
 
@@ -98,7 +100,7 @@ void lcd_init(void) {
     command(0x2F); // Power control
     command(0x27); // Resistor ratio
     command(0x81); // Set contrast
-    command(0x10); // Contrast value
+    command(0x18); // Contrast value
     command(0xFA); // Temperature curve
     command(0x90); // Temperature curve
     displayClear();
