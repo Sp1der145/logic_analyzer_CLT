@@ -116,8 +116,19 @@ int main(void)
   for(volatile int i = 0; i<1000; i++){}
   while (1)
   {
+	//Functions to be ran
+	  //update_char_display();
+	  //Encoder KINDA works, goes up/down then goes back to 5 somehow??
+	  checkEncoderInputs();
+	  checkButtonFSM();
+	  //monitor_IT_flags();
+	  //monitor_queues();
+	//Temp testing vals
+	  uint32_t rate = getSampleRate();
+	  uint8_t trace = getTriggerTrace();
+
 	  //GPIOA->ODR ^= (1<<3);
-	  draw();
+	  //draw();
 	  /*command(0xB1);
   	  for(int i = 0; i<8; i++){
   		  for(int j = 0; j<4; j++){

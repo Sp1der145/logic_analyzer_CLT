@@ -77,7 +77,6 @@ static const struct qTransition triggerCycles[6] = {
 static struct completeFSM EncA = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 static struct completeFSM EncB = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 static struct completeFSM btnInc = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
-static struct completeFSM btnDec = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
 static struct completeFSM triggerTraceFSM = { .q = pgtMiddle, .numTransitions = 6, .table = triggerCycles };
 
 /* ------------------------------------------------------ */
@@ -121,10 +120,10 @@ void checkChannelA(void) {
 
     C_A_in = getFSMoutput(&EncA, inPA9);
     C_B_in = getFSMoutput(&EncB, inPA10);
-
+    //CHANGE THE IFs
     if (C_A_in != P_A_in) {
         if (C_A_in != C_B_in) {
-            if (_sampleRate > 0) _sampleRate--;
+            if (_sampleRate > 1) _sampleRate--;
         } else {
             if (_sampleRate < 10) _sampleRate++;
         }
@@ -137,10 +136,10 @@ void checkChannelB(void) {
 
     C_A_in = getFSMoutput(&EncA, inPA9);
     C_B_in = getFSMoutput(&EncB, inPA10);
-
+    //CHANGE THE IFs
     if (C_B_in != P_B_in) {
         if (C_B_in == C_A_in) {
-            if (_sampleRate > 0) _sampleRate--;
+            if (_sampleRate > 1) _sampleRate--;
         } else {
             if (_sampleRate < 10) _sampleRate++;
         }
@@ -150,11 +149,10 @@ void checkChannelB(void) {
 
 void nextTriggerTrace(void) {
     updateInputs();
-
+    //BUTTON STILL MIGHT NEED FIXED
     uint8_t buttonPress = getFSMoutput(&btnInc, inPA8);
-    //uint8_t buttonPress = getFSMoutput(&btnDec, inPA8); Diff Name & Input required??
     uint8_t newTrace = getFSMoutput(&triggerTraceFSM, buttonPress);
-    if (buttonPress == 1) {
+    if (newTrace+1 == PBRELEASE) {
         setTriggerTrace(newTrace);
     }
 }

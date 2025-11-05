@@ -46,8 +46,6 @@ uint8_t getTriggerTrace(void);
 void setSampleRate(uint8_t val);
 uint32_t getSampleRate(void);
 
-//static uint8_t getFSMoutput(struct completeFSM *x, uint8_t in)
-
 void checkChannelA(void);
 void checkChannelB(void);
 void nextTriggerTrace(void);
