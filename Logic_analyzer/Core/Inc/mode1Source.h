@@ -10,7 +10,6 @@ enum buttonStates {PBqUP, PBqDOWN, PBqUPweak, PBqDOWNweak};
 enum buttonOutput {PBUP, PBDOWN, PBRELEASE, PBPRESS};
 enum buttonInput {PBlow, PBhigh};
 enum bNum {ptgTop, pgtMiddle, pgtBottom, ngtTop, ngtMiddle, ngtBottom};
-enum sampleRateLevel {SR_LOW, SR_MEDIUM, SR_HIGH};
 
 /* ---------------------- STRUCTS --------------------- */
 struct qTransition {
@@ -39,13 +38,11 @@ extern struct completeFSM EncA;
 extern struct completeFSM EncB;
 extern struct completeFSM btnInc;
 extern struct completeFSM triggerTraceFSM;
-extern struct completeFSM sampleRateFSM;
 
 // Transition tables
 extern const struct qTransition encoderEdgeTransitions[16];
 extern const struct qTransition pushButton[8];
 extern const struct qTransition triggerCycles[6];
-extern const struct qTransition sampleRateTransitions[5];
 
 // Shared queue data (with internal storage in mode1Source.c)
 extern volatile uint8_t _triggerTrace;
