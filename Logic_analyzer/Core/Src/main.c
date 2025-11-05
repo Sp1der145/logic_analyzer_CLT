@@ -96,13 +96,14 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
+  //LL_SPI_Enable(SPI1);
   SPI1->CR1 |= SPI_CR1_SPE_Msk; // Enabling SPI1
   SPI1->CR2 |= SPI_CR2_RXNEIE_Msk; // Enable receive interrupts
   __enable_irq();
 
-  //init_display();
-  //setup_display();
-  lcd_init();
+  init_display();
+
+  //lcd_init();
 
 
 
@@ -112,29 +113,17 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  displayClear();
+  //displayClear();
   for(volatile int i = 0; i<1000; i++){}
   while (1)
   {
-	  //GPIOA->ODR ^= (1<<3);
-	  draw();
-	  /*command(0xB1);
-  	  for(int i = 0; i<8; i++){
-  		  for(int j = 0; j<4; j++){
-		  	  giveData(data[i]);
-	  	  }
-  		  if(i>0){
-  			  if(data[i]!=data[i-1]){
-  			  	  giveData(0xFF);
-  			  }
-  		  }
-  	  }*/
-	  //complete = true;
-	  /*GPIOA->ODR ^= (1<<3);
+	  GPIOA->ODR ^= (1<<3); // for performance
+	  //draw();
+
 	  update_char_display();
 	  monitor_IT_flags();
-	  monitor_queues();
-	  monitor_queues();*/
+	  //monitor_queues();
+
 
     /* USER CODE END WHILE */
 

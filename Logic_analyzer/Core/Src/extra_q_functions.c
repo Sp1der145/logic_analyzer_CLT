@@ -11,7 +11,11 @@
 extern uint8_t SPI_RX_hex;
 extern bool IT_SPI_FLAG;
 extern bool IT_SS_DONE_FLAG;
-extern Queue CD_q;
+
+extern Queue M1_setup_q;
+extern Queue M1_data_q;
+extern Queue M2_q;
+extern Queue SPI_q;
 
 
 
@@ -25,7 +29,7 @@ void monitor_IT_flags(){
 	// If the SPI transmission is complete, slap a header on it and enqueue it to the char display queue
 	if (IT_SPI_FLAG){
 		hex1 = (int32_t)(SPI_RX_hex) | 0x08000000;
-		enqueue(&CD_q, hex1);
+		enqueue(&M2_q, hex1);
 		IT_SPI_FLAG = false;
 	}
 
@@ -34,7 +38,7 @@ void monitor_IT_flags(){
 	if (IT_SS_DONE_FLAG){
 		count = LL_TIM_GetCounter(TIM6); // Get timer value (1 tick = .5us)
 		data1 = ((int32_t)(count/2)) | 0x04000000;
-		enqueue(&CD_q, data1);
+		enqueue(&M2_q, data1);
 		IT_SS_DONE_FLAG = false; // Reset the flag
 		LL_TIM_SetCounter(TIM6, 0);   // Reset counter to 0
 	}
@@ -45,14 +49,37 @@ void monitor_IT_flags(){
 }
 
 void monitor_queues(){
-	int32_t error;
 
-	// Iterating through the last 3 ("hidden") values of the q1 queue buffer
+
+	// Iterating through the last 3 ("hidden") values of the M1_setup_q queue buffer
 	for (volatile uint8_t i = 0; i<=2; i++){
-		if(CD_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
-			error = 0x0FFF0000;
-			enqueue(&CD_q, error);
+		if(M1_setup_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+			init_queue(&M1_setup_q);
 		}
-
 	}
+
+
+	// Iterating through the last 3 ("hidden") values of the M1_data_q queue buffer
+	for (volatile uint8_t i = 0; i<=2; i++){
+		if(M1_data_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+			init_queue(&M1_data_q);
+		}
+	}
+
+
+	// Iterating through the last 3 ("hidden") values of the M2_q queue buffer
+	for (volatile uint8_t i = 0; i<=2; i++){
+		if(M2_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+			init_queue(&M2_q);
+		}
+	}
+
+
+	// Iterating through the last 3 ("hidden") values of the SPI_q queue buffer
+	for (volatile uint8_t i = 0; i<=2; i++){
+		if(SPI_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+			init_queue(&SPI_q);
+		}
+	}
+
 }
