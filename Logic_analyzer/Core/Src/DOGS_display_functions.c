@@ -24,7 +24,7 @@ void clear_display(){
 
 	// In order to cycle through, each line has 4 extra "ghost spots", meaning 16 real spots + 4 to fill a line, 80 for 4 rows
 	for (uint8_t i = 0; i < 40; i++){
-		  sendSPI_DOGS(0x20, 1); // 0x20 = space (nothing)
+		  sendSPI_ALPHA(0x20, 1); // 0x20 = space (nothing)
 	  }
 }
 
@@ -33,14 +33,14 @@ void clear_display(){
 void set_cursor(uint8_t row, uint8_t col) {
       static const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x60};
       uint8_t addr = row_addr[row - 1] + (col - 1);
-      sendSPI_DOGS(0x80 | addr, 0);  // command set DDRAM address
+      sendSPI_ALPHA(0x80 | addr, 0);  // command set DDRAM address
 }
 
 
 void send_charDOGS(int8_t data){
 
 	uint8_t hex = char_to_DOGShex(data);
-	sendSPI_DOGS(hex, 1);
+	sendSPI_ALPHA(hex, 1);
 }
 
 
@@ -123,29 +123,29 @@ void init_display(){
 
 
 
-	sendSPI_DOGS(0x3A, 0);
-	sendSPI_DOGS(0x09, 0); // Display line mode?
-	sendSPI_DOGS(0x06, 0);
-	sendSPI_DOGS(0x1E, 0);
-	sendSPI_DOGS(0x39, 0);
-	sendSPI_DOGS(0x1B, 0);
-	sendSPI_DOGS(0x6C, 0);
-	sendSPI_DOGS(0x54, 0); //last 2 bits here are to MSB of contrast register (DB1 = C5, DB0 = C4) C5 C4 C3 C2 C1 C0
+	sendSPI_ALPHA(0x3A, 0);
+	sendSPI_ALPHA(0x09, 0); // Display line mode?
+	sendSPI_ALPHA(0x06, 0);
+	sendSPI_ALPHA(0x1E, 0);
+	sendSPI_ALPHA(0x39, 0);
+	sendSPI_ALPHA(0x1B, 0);
+	sendSPI_ALPHA(0x6C, 0);
+	sendSPI_ALPHA(0x54, 0); //last 2 bits here are to MSB of contrast register (DB1 = C5, DB0 = C4) C5 C4 C3 C2 C1 C0
 						   // 0x54 = 0 0 C3 C2 C1 C0
 	                       // 0x55 = 0 1 C3 C2 C1 C0
 						   // 0x56 = 1 0 C3 C2 C1 C0
 		                   // 0x57 = 1 1 C3 C2 C1 C0
-	sendSPI_DOGS(0x77, 0); // Set Contrast (DB3-DB0=C3-C0) -> C = 001111
-	sendSPI_DOGS(0x38, 0); // RE = 0, IS = 0
-	sendSPI_DOGS(0x0F, 0);
+	sendSPI_ALPHA(0x77, 0); // Set Contrast (DB3-DB0=C3-C0) -> C = 001111
+	sendSPI_ALPHA(0x38, 0); // RE = 0, IS = 0
+	sendSPI_ALPHA(0x0F, 0);
 
 
 	// Set display to 2 lines
-	sendSPI_DOGS(0x3A, 0);
-	sendSPI_DOGS(0x1B, 0);
-	sendSPI_DOGS(0x3C, 0);
+	sendSPI_ALPHA(0x3A, 0);
+	sendSPI_ALPHA(0x1B, 0);
+	sendSPI_ALPHA(0x3C, 0);
 
-	setup_display(1);
+	setup_display(2);
 }
 
 

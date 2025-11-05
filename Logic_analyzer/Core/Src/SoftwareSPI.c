@@ -7,6 +7,21 @@
 
 #include "main.h"
 #include "SoftwareSPI.h"
+#include "queue.h"
+
+extern Queue SPI_q;
+
+
+// TASK
+void SW_SPI(){
+	// litterally just dequeueing and sendSPI()
+	// the rest of the custom spi functions will enqueue to this function
+
+
+
+}
+
+
 
 void sendSPI(uint8_t data){
 	uint8_t bit;
@@ -45,7 +60,7 @@ void sendSPI(uint8_t data){
 
 
 
-void sendSPI_DOGS(uint8_t data, uint8_t type){
+void sendSPI_ALPHA(uint8_t data, uint8_t type){
 
 	// type designates commands or data (0 for commands, 1 for data)
 
