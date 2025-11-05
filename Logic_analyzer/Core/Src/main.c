@@ -100,8 +100,9 @@ int main(void)
   SPI1->CR2 |= SPI_CR2_RXNEIE_Msk; // Enable receive interrupts
   __enable_irq();
 
-  init_display();
-  setup_display();
+  //init_display();
+  //setup_display();
+  lcd_init();
 
 
 
@@ -110,12 +111,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  displayClear();
+  for(volatile int i = 0; i<1000; i++){}
   while (1)
   {
-	  GPIOA->ODR ^= (1<<3);
+	  //GPIOA->ODR ^= (1<<3);
+	  draw();
+	  /*command(0xB1);
+  	  for(int i = 0; i<8; i++){
+  		  for(int j = 0; j<4; j++){
+		  	  giveData(data[i]);
+	  	  }
+  		  if(i>0){
+  			  if(data[i]!=data[i-1]){
+  			  	  giveData(0xFF);
+  			  }
+  		  }
+  	  }*/
+	  //complete = true;
+	  /*GPIOA->ODR ^= (1<<3);
 	  update_char_display();
 	  monitor_IT_flags();
 	  monitor_queues();
+	  monitor_queues();*/
 
     /* USER CODE END WHILE */
 
@@ -375,6 +394,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = LL_GPIO_PIN_5;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /**/
   LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTA, LL_SYSCFG_EXTI_LINE11);

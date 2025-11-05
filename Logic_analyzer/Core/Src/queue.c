@@ -11,6 +11,7 @@
 
 
 Queue CD_q; //Character Display Queue
+Queue M_q; //Mode1 Queue
 
 
 
