@@ -20,7 +20,7 @@ volatile uint8_t C_B_in;
 
 // Queue backing vars (internal)
 volatile uint8_t _triggerTrace = 0; //Can be 0-5
-volatile uint32_t _sampleRate = 500; //Can be 500, 1000, 10000
+volatile uint32_t _sampleRate = 5; //Can be 0-10
 
 // GPIO input snapshots
 volatile uint8_t inPA9;
@@ -73,23 +73,14 @@ const struct qTransition triggerCycles[6] = {
     {ngtBottom, 1, ptgTop, ptgTop}, //Out 0
 };
 
-// Sample rate FSM (Outputs 1, 2, OR 3
-const struct qTransition sampleRateTransitions[5] = {
-    {SR_LOW, PRESSED, SR_MEDIUM, 1000},
-    {SR_MEDIUM, PRESSED, SR_HIGH, 5000},
-    {SR_HIGH, PRESSED, SR_LOW, 500},
-    {SR_HIGH, UNPRESSED, SR_MEDIUM, 1000},
-    {SR_MEDIUM, UNPRESSED, SR_LOW, 500},
-};
-
 /* ------------------------------------------------------ */
 /* ---------------------- FSM STRUCTS -------------------- */
 /* ------------------------------------------------------ */
 struct completeFSM EncA = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 struct completeFSM EncB = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 struct completeFSM btnInc = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
+struct completeFSM btnDec = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
 struct completeFSM triggerTraceFSM = { .q = pgtMiddle, .numTransitions = 6, .table = triggerCycles };
-struct completeFSM sampleRateFSM = { .q = SR_MEDIUM, .numTransitions = 5, .table = sampleRateTransitions };
 
 /* ------------------------------------------------------ */
 /* ---------------------- GETTERS/SETTERS ---------------- */
@@ -137,12 +128,17 @@ void checkChannelA(void) {
 
     C_A_in = getFSMoutput(&EncA, inPA9);
     C_B_in = getFSMoutput(&EncB, inPA10);
-
+//NEED TO FIX IS UPDATING ON IT"S OWN EVEN WHEN NOT MOVING
     if (C_A_in != P_A_in) {
-        uint32_t newRate = getFSMoutput(&sampleRateFSM,
-                            (C_A_in != C_B_in) ? PRESSED : UNPRESSED);
-        setSampleRate(newRate);
-        P_A_in = C_A_in;
+    	// A has changed. Check the state of B to determine direction.
+    	if (C_A_in != C_B_in) {
+    		_sampleRate--; // Clockwise rotation
+    		if (_sampleRate < 0){ _sampleRate = 0;}
+    	} else {
+    		_sampleRate++; // Counter-clockwise rotation
+    		if (_sampleRate > 10){ _sampleRate = 10;}
+    	}
+    	P_A_in = C_A_in; // Update the previous state
     }
 }
 
@@ -152,11 +148,17 @@ void checkChannelB(void) {
     C_A_in = getFSMoutput(&EncA, inPA9);
     C_B_in = getFSMoutput(&EncB, inPA10);
 
+    // Ones Check for a change in Channel B (if A hasn't changed)
     if (C_B_in != P_B_in) {
-        uint32_t newRate = getFSMoutput(&sampleRateFSM,
-                            (C_B_in == C_A_in) ? PRESSED : UNPRESSED);
-        setSampleRate(newRate);
-        P_B_in = C_B_in;
+    	// B has changed. Check the state of A to determine direction.
+    	if (C_B_in == C_A_in) {
+    		_sampleRate--; // Clockwise rotation
+    		if (_sampleRate <= 0){ _sampleRate = 0;}
+    	} else {
+    		_sampleRate++; // Counter-clockwise rotation
+    		if (_sampleRate >= 10){ _sampleRate = 10;}
+    	}
+    	P_B_in = C_B_in; // Update the previous state
     }
 }
 
