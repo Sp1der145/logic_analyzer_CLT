@@ -77,7 +77,7 @@ static const struct qTransition triggerCycles[6] = {
 static struct completeFSM EncA = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 static struct completeFSM EncB = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 static struct completeFSM btnInc = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
-static struct completeFSM btnDec = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
+static struct completeFSM btnDec = { .q = PBqUP, .numTransitions = 8, .table = pushButton }; // FIX WARNING HERE
 static struct completeFSM triggerTraceFSM = { .q = pgtMiddle, .numTransitions = 6, .table = triggerCycles };
 
 /* ------------------------------------------------------ */

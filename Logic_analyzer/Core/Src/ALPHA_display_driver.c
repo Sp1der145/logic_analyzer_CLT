@@ -5,13 +5,13 @@
  *      Author: trloeffler20
  */
 
+
 #include "main.h"
+#include "ALPHA_char_lookup.h"
 #include "queue.h"
 #include "SoftwareSPI.h"
-#include "DOGS_character_lookup.h"
 
-extern Queue M1_setup_q;
-extern Queue M1_data_q;
+
 extern Queue M2_q;
 extern Queue SPI_q;
 
@@ -26,6 +26,8 @@ void clear_display(){
 	for (uint8_t i = 0; i < 40; i++){
 		  sendSPI_ALPHA(0x20, 1); // 0x20 = space (nothing)
 	  }
+
+	return;
 }
 
 
@@ -34,6 +36,8 @@ void set_cursor(uint8_t row, uint8_t col) {
       static const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x60};
       uint8_t addr = row_addr[row - 1] + (col - 1);
       sendSPI_ALPHA(0x80 | addr, 0);  // command set DDRAM address
+
+      return;
 }
 
 
@@ -41,6 +45,8 @@ void send_charDOGS(int8_t data){
 
 	uint8_t hex = char_to_DOGShex(data);
 	sendSPI_ALPHA(hex, 1);
+
+	return;
 }
 
 
@@ -96,6 +102,7 @@ void setup_display(uint8_t mode){
 	// moving the cursor off the screen
 	set_cursor(2,18);
 
+	return;
 }
 
 
@@ -146,6 +153,8 @@ void init_display(){
 	sendSPI_ALPHA(0x3C, 0);
 
 	setup_display(2);
+
+	return;
 }
 
 
@@ -201,6 +210,7 @@ void update_period(uint16_t period){
 	// moving the cursor off the screen
 	set_cursor(2,18);
 
+	return;
 }
 
 
@@ -231,6 +241,7 @@ void update_MSG(uint16_t SPIhex){
 	// moving the cursor off the screen
 	set_cursor(2,18);
 
+	return;
 }
 
 
@@ -278,6 +289,7 @@ void update_SR(uint16_t sample_rate){
 	// moving the cursor off the screen
 	set_cursor(2,18);
 
+	return;
 }
 
 
@@ -319,6 +331,7 @@ void update_TM(uint16_t trigger_mode){
 	// moving the cursor off the screen
 	set_cursor(2,18);
 
+	return;
 }
 
 
@@ -375,7 +388,7 @@ void update_char_display(){ // task
 		update_period(trigger_mode);
 	}
 
-
+	return;
 }
 
 

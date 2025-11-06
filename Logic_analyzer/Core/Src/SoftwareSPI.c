@@ -18,12 +18,12 @@ void SW_SPI(){
 	// the rest of the custom spi functions will enqueue to this function
 
 
-
+	return;
 }
 
 
 
-void sendSPI(uint8_t data){
+void softSPI_LSB(uint8_t data){
 	uint8_t bit;
 	// LSB first
 	// Clock idle high
@@ -51,15 +51,40 @@ void sendSPI(uint8_t data){
 		// Set the clock high
 		GPIOA -> ODR |= (1<<5);
 
-
 	}
 
+	return;
+}
 
+
+void softSPI_MSB(uint8_t data, bool is_data){
+	uint8_t shift;
+
+    GPIOA -> ODR &= ~(1<<GCS);
+	for(int8_t i = 7; i>=0; i--){
+		shift = (!!(data&(1<<i)));
+		if(shift){
+			GPIOA -> ODR |= (1<<GMOSI);
+		}
+		else{
+			GPIOA -> ODR &= ~(1<<GMOSI);
+		}
+
+		for(volatile int i=0; i<50; i++); // does this delay need to be 50?
+		GPIOA -> ODR |= (1<<GCLK);
+		for(volatile int i=0; i<50; i++);
+		GPIOA -> ODR &= ~(1<<GCLK);
+	}
+
+    GPIOA -> ODR |= (1<<GCS);
+
+    return;
 }
 
 
 
 
+// Specific SPI Protocol for the alpha-numeric (character) display
 void sendSPI_ALPHA(uint8_t data, uint8_t type){
 
 	// type designates commands or data (0 for commands, 1 for data)
@@ -74,18 +99,43 @@ void sendSPI_ALPHA(uint8_t data, uint8_t type){
 	// First part of the 24 bit transmission 0b0?011111 (LSB First)
 	//											^ RS
 	if (type == 0){
-		sendSPI(0x1F); // RS = 0 for command
+		softSPI_LSB(0x1F); // RS = 0 for command
 	}
 	else{
-		sendSPI(0x5F); // RS = 1 for data
+		softSPI_LSB(0x5F); // RS = 1 for data
 	}
-	sendSPI(LSN);
-	sendSPI(MSN);
+	softSPI_LSB(LSN);
+	softSPI_LSB(MSN);
 
 	GPIOA->ODR |= (1<<4); // PA4 is chip select pin (bring high for end of transmission)
 							// How to synchronise with the end of the SPI transmission?
 
+	return;
 }
+
+
+
+
+
+void sendSPI_GRAPH(uint8_t byte, bool is_data){
+    if (is_data){
+    	GPIOB -> ODR |= (1<<GCD);
+    }
+    else{
+    	GPIOB -> ODR &= ~(1<<GCD);
+    }
+
+	softSPI_MSB(byte, is_data);
+
+	for(volatile uint32_t i=0; i<100; i++); //For debugging pleasure
+
+	return;
+}
+
+
+
+
+
 
 
 

@@ -17,12 +17,17 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+
+
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "DOGS_display_functions.h"
-#include "extra_q_functions.h"
+#include "ALPHA_display_driver.h"
+#include "M2_interpreter.h"
+#include "artist.h"
+#include "display.h"
+#include "queue.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,8 +108,8 @@ int main(void)
 
   init_display();
 
-  //lcd_init();
-
+  lcd_init();
+  displayClear();
 
 
 
@@ -113,16 +118,16 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  //displayClear();
+
   for(volatile int i = 0; i<1000; i++){}
   while (1)
   {
 	  GPIOA->ODR ^= (1<<3); // for performance
-	  //draw();
+	  draw();
 
 	  update_char_display();
 	  monitor_IT_flags();
-	  //monitor_queues();
+	  monitor_queues();
 
 
     /* USER CODE END WHILE */

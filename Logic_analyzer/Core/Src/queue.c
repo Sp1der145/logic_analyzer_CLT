@@ -100,3 +100,45 @@ bool dequeue(Queue* this, int32_t* data){
 
 	return true;
 }
+
+
+
+
+void monitor_queues(){
+
+
+	// Iterating through the last 3 ("hidden") values of the M1_setup_q queue buffer
+	for (volatile uint8_t i = 0; i<=2; i++){
+		if(M1_setup_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+			init_queue(&M1_setup_q);
+		}
+	}
+
+
+	// Iterating through the last 3 ("hidden") values of the M1_data_q queue buffer
+	for (volatile uint8_t i = 0; i<=2; i++){
+		if(M1_data_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+			init_queue(&M1_data_q);
+		}
+	}
+
+
+	// Iterating through the last 3 ("hidden") values of the M2_q queue buffer
+	for (volatile uint8_t i = 0; i<=2; i++){
+		if(M2_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+			init_queue(&M2_q);
+		}
+	}
+
+
+	// Iterating through the last 3 ("hidden") values of the SPI_q queue buffer
+	for (volatile uint8_t i = 0; i<=2; i++){
+		if(SPI_q.buffer[QUEUE_DEPTH+i] != 0xBAADF00D){
+			init_queue(&SPI_q);
+		}
+	}
+
+}
+
+
+

@@ -11,7 +11,7 @@
 // we can use that ascii value as an index in this table to generate the correct hex value for the screen
 
 
-uint8_t table [123] = {
+const uint8_t table [123] = {
 		[0] = 0x30, // 0
 		[1] = 0x31, // 1
 		[2] = 0x32, // 2
@@ -93,8 +93,10 @@ int8_t char_to_DOGShex(int8_t data){
 	uint8_t offset = (uint8_t)data; // ' '(space) = 0x20, the lowest ascii value we will use
 									// every other character will have a larger ascii value
 									// and create an offset in this variable init calculation
-	int8_t hex = table[offset];
-
-
-	return hex;
+	return table[offset];
 }
+
+
+
+
+

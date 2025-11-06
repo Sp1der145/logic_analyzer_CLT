@@ -21,4 +21,6 @@ void init_queue(Queue* this);
 bool enqueue(Queue* this, int32_t data);
 bool dequeue(Queue* this, int32_t* data);
 
+void monitor_queues();
+
 #endif /* INC_QUEUE_H_ */
