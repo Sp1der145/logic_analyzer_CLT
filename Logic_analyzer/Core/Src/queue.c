@@ -6,10 +6,18 @@
  */
 
 
+////////////////////////////////////////////////////////////////////////////////
+//								INCLUDE FILES								  //
+////////////////////////////////////////////////////////////////////////////////
+
+
 #include "queue.h"
 #include "main.h"
 
 
+////////////////////////////////////////////////////////////////////////////////
+//							  QUEUE INSTANCES								  //
+////////////////////////////////////////////////////////////////////////////////
 
 Queue M1_setup_q;	// Mode1 Setup Queue
 Queue M1_data_q;	// Mode1 Data Queue
@@ -18,18 +26,23 @@ Queue SPI_q;		// SPI Queue
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//									FUNCTIONS								  //
+////////////////////////////////////////////////////////////////////////////////
 
+
+// Initializing the Queue with 0xBAADFOOD at the end of the buffer
 void init_queue(Queue* this){
 	this->head = 0;
 	this->load = 0;
 
-	this->buffer[QUEUE_DEPTH]   = 0xBAADF00D;// Third to last element in the buffer
-	this->buffer[QUEUE_DEPTH+1] = 0xBAADF00D;// Second to Last element in the buffer
-	this->buffer[QUEUE_DEPTH+2] = 0xBAADF00D;// Last element in the buffer
+	this->buffer[QUEUE_DEPTH]   = 0xBAADF00D; // Third to last element in the buffer
+	this->buffer[QUEUE_DEPTH+1] = 0xBAADF00D; // Second to Last element in the buffer
+	this->buffer[QUEUE_DEPTH+2] = 0xBAADF00D; // Last element in the buffer
 
 }
 
-
+// Enqueueing function
 bool enqueue(Queue* this, int32_t data){
 
 	int16_t location;
@@ -74,6 +87,7 @@ bool enqueue(Queue* this, int32_t data){
 
 }
 
+// Dequeueing function
 bool dequeue(Queue* this, int32_t* data){
 	if(this->load == 0){
 		return false;
@@ -103,7 +117,8 @@ bool dequeue(Queue* this, int32_t* data){
 
 
 
-
+// This function monitors all of the queues to ensure there is no buffer overflow by checking all of the bad food values
+// the Queues get reinitialized if there is corruption
 void monitor_queues(){
 
 
@@ -140,6 +155,7 @@ void monitor_queues(){
 
 }
 
+// Simple function that inits all the queues
 void init_all_queues(){
 
 	init_queue(&M1_setup_q);	// Mode1 Setup Queue

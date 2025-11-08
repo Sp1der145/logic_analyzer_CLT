@@ -102,7 +102,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-  //LL_SPI_Enable(SPI1);
+
   SPI1->CR1 |= SPI_CR1_SPE_Msk; // Enabling SPI1
   SPI1->CR2 |= SPI_CR2_RXNEIE_Msk; // Enable receive interrupts
   __enable_irq();
@@ -114,7 +114,7 @@ int main(void)
   SW_SPI();
 
   lcd_init();
-  //displayClear();
+  //displayClear(); // this is the problem function ATM
 
 
 

@@ -1,14 +1,20 @@
 /*
- * DOGS_character_lookup.c
+ * ALPHA_char_lookup.c
  *
  *  Created on: Oct 22, 2025
  *      Author: trloeffler20
  */
 
+////////////////////////////////////////////////////////////////////////////////
+//								INCLUDE FILES								  //
+////////////////////////////////////////////////////////////////////////////////
+
 #include "main.h"
 
-// every character sent has an ascii value
-// we can use that ascii value as an index in this table to generate the correct hex value for the screen
+
+////////////////////////////////////////////////////////////////////////////////
+//							  	LOOKUP TABLE								  //
+////////////////////////////////////////////////////////////////////////////////
 
 
 const uint8_t table [123] = {
@@ -87,13 +93,19 @@ const uint8_t table [123] = {
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//									FUNCTION								  //
+////////////////////////////////////////////////////////////////////////////////
+
+
+// This function every character sent has an ascii value
+// we can use that ascii value as an index in this table to generate the correct hex value for the screen
 
 int8_t char_to_DOGShex(int8_t data){
 
-	uint8_t offset = (uint8_t)data; // ' '(space) = 0x20, the lowest ascii value we will use
-									// every other character will have a larger ascii value
-									// and create an offset in this variable init calculation
-	return table[offset];
+	uint8_t offset = (uint8_t)data; // Casting
+
+	return table[offset]; // Returning table value
 }
 
 

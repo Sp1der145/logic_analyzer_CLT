@@ -87,7 +87,7 @@ void lcd_init(void) {
 	enqueue(&SPI_q, 0x010000FA);
 	enqueue(&SPI_q, 0x01000090);
 
-	//displayClear();
+	//displayClear(); // this is the problem function ATM
 
 	displayOn();
 

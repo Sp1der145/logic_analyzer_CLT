@@ -1,10 +1,14 @@
 /*
- * DOGS_display_functions.c
+ * ALPHA_display_driver.c
  *
  *  Created on: Oct 20, 2025
  *      Author: trloeffler20
  */
 
+
+////////////////////////////////////////////////////////////////////////////////
+//								INCLUDE FILES								  //
+////////////////////////////////////////////////////////////////////////////////
 
 #include "main.h"
 #include "ALPHA_char_lookup.h"
@@ -12,20 +16,24 @@
 #include "SoftwareSPI.h"
 
 
+////////////////////////////////////////////////////////////////////////////////
+//							  ETERNAL VARIABLES								  //
+////////////////////////////////////////////////////////////////////////////////
+
 extern Queue M2_q;
 extern Queue SPI_q;
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//									FUNCTIONS								  //
+////////////////////////////////////////////////////////////////////////////////
 
 
-
+// This function clears the display by writing ' '(space) to the entire display
 void clear_display(){
 	// message stays constant in this function because 0x20 is all that gets sent in this function
-	int32_t message = 0x02100020;
-					//   ^^   ^0x20 is the SPI byte
-					// 2 means the byte is for the ALPHA display
-					// 1 means the byte is data, not command
+	const int32_t message = 0x02100020;
 
 	// In order to cycle through, each line has 4 extra "ghost spots", meaning 16 real spots + 4 to fill a line, 80 for 4 rows
 	for (uint8_t i = 0; i < 40; i++){
@@ -36,26 +44,25 @@ void clear_display(){
 }
 
 
-
+// This function sets the cursor on the screen so you can write to anywhere, not needing to cycle through the entire screen
 void set_cursor(uint8_t row, uint8_t col) {
-	int32_t message;
 
-	static const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x60};
+	const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x60};
 
 	uint8_t addr = row_addr[row - 1] + (col - 1);
 
-	message = 0x02000080 | addr;	// command set DDRAM address
-	enqueue(&SPI_q, message);
+	enqueue(&SPI_q, 0x02000080 | addr);
 
 	return;
 }
 
-
+// This function takes a char (int8_t, NOT uint8_t)
+// and uses a lookup table to convert the char to the correct hex data for the display,
+// then sends it to be sent out by the SPI driver
 void send_charDOGS(int8_t data){
-	int32_t message;
 
-	uint8_t hex = char_to_DOGShex(data);
-	message = 0x02100000 | hex;
+	uint8_t hex = char_to_DOGShex(data); // Function with the lookup table
+	int32_t message = 0x02100000 | hex;
 	enqueue(&SPI_q, message);
 
 	return;
@@ -63,15 +70,15 @@ void send_charDOGS(int8_t data){
 
 
 
-
+// This function writes the labels to the display depending on the mode
 void setup_display(uint8_t mode){
 
 	clear_display();
 
 	if (mode == 1){				// Mode 1 = Traces
 		set_cursor(1,4);		// Display:
-		send_charDOGS('S');		//	Sample rate (us)
-		send_charDOGS('R');		//	Trigger mode (1R = Trace 1 rising 1F = Trace 1 falling, 2R, 2F, 3R, 3F)
+		send_charDOGS('S');		// Sample rate (us)
+		send_charDOGS('R');		// Trigger mode (1R = Trace 1 rising 1F = Trace 1 falling, 2R, 2F, 3R, 3F)
 		send_charDOGS(' ');
 		send_charDOGS('u');
 		send_charDOGS('s');
@@ -118,10 +125,12 @@ void setup_display(uint8_t mode){
 }
 
 
+// This function initializes the display according to the datasheet
+// A reset pulse, sending all the required init commands, and setting the line mode
 void init_display(){
 
-
-	GPIOA->ODR |= (1<<7); // PA7 (A6) is RST (Reset) pin (Active low, start high to make a pulse)
+	// PA7 (A6) is RST (Reset) pin (Active low, start high to make a pulse)
+	GPIOA->ODR |= (1<<7);
 
 	// ~2ms delay to allow stable high level before pulse
 	for (uint32_t i = 0; i < 10000; i++){}
@@ -168,7 +177,7 @@ void init_display(){
 
 
 
-
+// This function takes an integer and calculates the digits that need to be displayed on the screen
 void update_period(uint16_t period){
 
 
@@ -222,6 +231,7 @@ void update_period(uint16_t period){
 }
 
 
+// This function takes the hex data to be displayed and splits up the byte so it can be displayed
 void update_MSG(uint16_t SPIhex){
 
 
@@ -255,7 +265,7 @@ void update_MSG(uint16_t SPIhex){
 
 
 
-// Update SR on the character display
+// This function is identical to update_period, taking an integer and calculating the digits to be displayed
 void update_SR(uint16_t sample_rate){
 
 
@@ -301,7 +311,7 @@ void update_SR(uint16_t sample_rate){
 }
 
 
-// Update trigger mode
+// This function displays the trigger mode
 void update_TM(uint16_t trigger_mode){
 
 	set_cursor(2,13);
@@ -345,8 +355,8 @@ void update_TM(uint16_t trigger_mode){
 
 
 
-
-void update_char_display(){ // task
+// This is the task to be called by the main function, handling all the messages received in its queue
+void update_char_display(){
 
 
 	// Mode1: GPIO
@@ -355,7 +365,7 @@ void update_char_display(){ // task
 
 	int32_t message; // Variable that data will be dequeued to
 
-	uint16_t CS_period;
+	uint16_t CS_period; // Do I need different variables all of these?
 	uint16_t SPI_data;
 	uint16_t sample_rate;
 	uint16_t trigger_mode;
