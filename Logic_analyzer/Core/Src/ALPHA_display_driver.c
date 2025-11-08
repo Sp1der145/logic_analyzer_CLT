@@ -21,10 +21,15 @@ extern Queue SPI_q;
 
 
 void clear_display(){
+	// message stays constant in this function because 0x20 is all that gets sent in this function
+	int32_t message = 0x02100020;
+					//   ^^   ^0x20 is the SPI byte
+					// 2 means the byte is for the ALPHA display
+					// 1 means the byte is data, not command
 
 	// In order to cycle through, each line has 4 extra "ghost spots", meaning 16 real spots + 4 to fill a line, 80 for 4 rows
 	for (uint8_t i = 0; i < 40; i++){
-		  sendSPI_ALPHA(0x20, 1); // 0x20 = space (nothing)
+		enqueue(&SPI_q, message);	// 0x20 = space (nothing)
 	  }
 
 	return;
@@ -33,18 +38,25 @@ void clear_display(){
 
 
 void set_cursor(uint8_t row, uint8_t col) {
-      static const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x60};
-      uint8_t addr = row_addr[row - 1] + (col - 1);
-      sendSPI_ALPHA(0x80 | addr, 0);  // command set DDRAM address
+	int32_t message;
 
-      return;
+	static const uint8_t row_addr[] = {0x00, 0x20, 0x40, 0x60};
+
+	uint8_t addr = row_addr[row - 1] + (col - 1);
+
+	message = 0x02000080 | addr;	// command set DDRAM address
+	enqueue(&SPI_q, message);
+
+	return;
 }
 
 
 void send_charDOGS(int8_t data){
+	int32_t message;
 
 	uint8_t hex = char_to_DOGShex(data);
-	sendSPI_ALPHA(hex, 1);
+	message = 0x02100000 | hex;
+	enqueue(&SPI_q, message);
 
 	return;
 }
@@ -109,9 +121,6 @@ void setup_display(uint8_t mode){
 void init_display(){
 
 
-	init_queue(&M2_q); // Initialize the Character Display queue
-
-
 	GPIOA->ODR |= (1<<7); // PA7 (A6) is RST (Reset) pin (Active low, start high to make a pulse)
 
 	// ~2ms delay to allow stable high level before pulse
@@ -128,29 +137,28 @@ void init_display(){
 	for (uint32_t i = 0; i < 10000; i++){}
 
 
-
-
-	sendSPI_ALPHA(0x3A, 0);
-	sendSPI_ALPHA(0x09, 0); // Display line mode?
-	sendSPI_ALPHA(0x06, 0);
-	sendSPI_ALPHA(0x1E, 0);
-	sendSPI_ALPHA(0x39, 0);
-	sendSPI_ALPHA(0x1B, 0);
-	sendSPI_ALPHA(0x6C, 0);
-	sendSPI_ALPHA(0x54, 0); //last 2 bits here are to MSB of contrast register (DB1 = C5, DB0 = C4) C5 C4 C3 C2 C1 C0
-						   // 0x54 = 0 0 C3 C2 C1 C0
-	                       // 0x55 = 0 1 C3 C2 C1 C0
-						   // 0x56 = 1 0 C3 C2 C1 C0
-		                   // 0x57 = 1 1 C3 C2 C1 C0
-	sendSPI_ALPHA(0x77, 0); // Set Contrast (DB3-DB0=C3-C0) -> C = 001111
-	sendSPI_ALPHA(0x38, 0); // RE = 0, IS = 0
-	sendSPI_ALPHA(0x0F, 0);
-
+	enqueue(&SPI_q, 0x0200003A);
+	enqueue(&SPI_q, 0x02000009);
+	enqueue(&SPI_q, 0x02000006);
+	enqueue(&SPI_q, 0x0200001E);
+	enqueue(&SPI_q, 0x02000039);
+	enqueue(&SPI_q, 0x0200001B);
+	enqueue(&SPI_q, 0x0200006C);
+	enqueue(&SPI_q, 0x02000054);	//last 2 bits here are to MSB of contrast register (DB1 = C5, DB0 = C4) C5 C4 C3 C2 C1 C0
+									// 0x54 = 0 0 C3 C2 C1 C0
+    								// 0x55 = 0 1 C3 C2 C1 C0
+									// 0x56 = 1 0 C3 C2 C1 C0
+    								// 0x57 = 1 1 C3 C2 C1 C0
+	enqueue(&SPI_q, 0x02000077);	// Set Contrast (DB3-DB0=C3-C0) -> C = 001111
+	enqueue(&SPI_q, 0x02000038);
+	enqueue(&SPI_q, 0x0200000F);
 
 	// Set display to 2 lines
-	sendSPI_ALPHA(0x3A, 0);
-	sendSPI_ALPHA(0x1B, 0);
-	sendSPI_ALPHA(0x3C, 0);
+	enqueue(&SPI_q, 0x0200003A);
+	enqueue(&SPI_q, 0x0200001B);
+	enqueue(&SPI_q, 0x0200003C);
+
+
 
 	setup_display(2);
 
@@ -340,6 +348,9 @@ void update_TM(uint16_t trigger_mode){
 
 void update_char_display(){ // task
 
+
+	// Mode1: GPIO
+	// Mode2: SPI
 	static uint8_t mode = 1;
 
 	int32_t message; // Variable that data will be dequeued to

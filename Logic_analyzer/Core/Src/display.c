@@ -29,16 +29,21 @@
 
 #include "display.h"
 #include "SoftwareSPI.h"
+#include "queue.h"
 
+extern Queue SPI_q;
 
 
 void displayOn(){
-	sendSPI_GRAPH(0xAF, false);
+	//sendSPI_GRAPH(0xAF, false);
+	enqueue(&SPI_q, 0x010000AF);
+
 	return;
 }
 
 void displayOff(){
-	sendSPI_GRAPH(0xAE, false);
+	//sendSPI_GRAPH(0xAE, false);
+	enqueue(&SPI_q, 0x010000AE);
 	return;
 }
 
@@ -55,7 +60,7 @@ void lcd_init(void) {
 	reset();
 
 	displayOff();
-
+/*
 	sendSPI_GRAPH(0x40, false); // Set display start line = 0
 	sendSPI_GRAPH(0xA1, false); // Reverse view
 	sendSPI_GRAPH(0xC0, false); // COM mode
@@ -68,8 +73,21 @@ void lcd_init(void) {
 	sendSPI_GRAPH(0x18, false); // Contrast value
 	sendSPI_GRAPH(0xFA, false); // Temperature curve
 	sendSPI_GRAPH(0x90, false); // Temperature curve
+*/
+	enqueue(&SPI_q, 0x01000040);
+	enqueue(&SPI_q, 0x010000A1);
+	enqueue(&SPI_q, 0x010000C0);
+	enqueue(&SPI_q, 0x010000A4);
+	enqueue(&SPI_q, 0x010000A6);
+	enqueue(&SPI_q, 0x010000A2);
+	enqueue(&SPI_q, 0x0100002F);
+	enqueue(&SPI_q, 0x01000027);
+	enqueue(&SPI_q, 0x01000081);
+	enqueue(&SPI_q, 0x01000018);
+	enqueue(&SPI_q, 0x010000FA);
+	enqueue(&SPI_q, 0x01000090);
 
-	displayClear();
+	//displayClear();
 
 	displayOn();
 
@@ -77,11 +95,15 @@ void lcd_init(void) {
 
 void displayClear() {
     for(int page = 0; page < 8; page++){
-    	sendSPI_GRAPH((0xB0 | page), false);		// Set page
+    	//sendSPI_GRAPH((0xB0 | page), false);		// Set page
+    	enqueue(&SPI_q, (0x010000B0 | page));
         for(int col = 0; col < 132; col++){
-        	sendSPI_GRAPH((0x10 | ((col >> 4) & 0x0F)), false);
-        	sendSPI_GRAPH((0x00 | (col & 0x0F)), false);
-        	sendSPI_GRAPH(0x00, true);				// Clear each byte
+        	//sendSPI_GRAPH((0x10 | ((col >> 4) & 0x0F)), false);
+        	enqueue(&SPI_q, (0x01000010 | ((col >> 4) & 0x0F)));
+        	//sendSPI_GRAPH((0x00 | (col & 0x0F)), false);
+        	enqueue(&SPI_q, (0x01000000 | (col & 0x0F)));
+        	//sendSPI_GRAPH(0x00, true);				// Clear each byte
+        	enqueue(&SPI_q, 0x01100000);				// Clear each byte
         }
     }
 }
@@ -93,9 +115,13 @@ void draw_pixel(uint8_t x, uint8_t y) {
     uint8_t bit  = y % 8;
     uint8_t data = (1 << bit);
 
-    sendSPI_GRAPH((0xB0 | page), false);             	// Set page
-    sendSPI_GRAPH((0x10 | ((x >> 4) & 0x0F)), false);  	// Correct MSB
-    sendSPI_GRAPH((0x00 | (x & 0x0F)), false);        	// LSB
-    sendSPI_GRAPH(data, true);                      	// Send the byte
+    //sendSPI_GRAPH((0xB0 | page), false);             	// Set page
+    enqueue(&SPI_q, (0x010000B0 | page));				// Set page
+    //sendSPI_GRAPH((0x10 | ((x >> 4) & 0x0F)), false);  	// Correct MSB
+    enqueue(&SPI_q, (0x01000010 | ((x >> 4) & 0x0F)));		// Correct MSB
+    //sendSPI_GRAPH((0x00 | (x & 0x0F)), false);        // LSB
+    enqueue(&SPI_q, (0x01000000 | (x & 0x0F)));			// LSB
+    //sendSPI_GRAPH(data, true);                      	// Send the byte
+    enqueue(&SPI_q, (0x01100000 | data));				// Send the byte
 }
 

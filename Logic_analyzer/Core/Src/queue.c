@@ -140,5 +140,15 @@ void monitor_queues(){
 
 }
 
+void init_all_queues(){
+
+	init_queue(&M1_setup_q);	// Mode1 Setup Queue
+	init_queue(&M1_data_q);		// Mode1 Data Queue
+	init_queue(&M2_q);			// Mode2 Queue
+	init_queue(&SPI_q);			// SPI Queue
+
+	return;
+}
+
 
 

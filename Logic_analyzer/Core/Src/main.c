@@ -28,6 +28,7 @@
 #include "artist.h"
 #include "display.h"
 #include "queue.h"
+#include "SoftwareSPI.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -106,10 +107,15 @@ int main(void)
   SPI1->CR2 |= SPI_CR2_RXNEIE_Msk; // Enable receive interrupts
   __enable_irq();
 
+  init_all_queues();
+
+
   init_display();
+  SW_SPI();
 
   lcd_init();
-  displayClear();
+  //displayClear();
+
 
 
 
@@ -119,7 +125,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 
-  for(volatile int i = 0; i<1000; i++){}
   while (1)
   {
 	  GPIOA->ODR ^= (1<<3); // for performance
@@ -128,6 +133,7 @@ int main(void)
 	  update_char_display();
 	  monitor_IT_flags();
 	  monitor_queues();
+	  SW_SPI();
 
 
     /* USER CODE END WHILE */

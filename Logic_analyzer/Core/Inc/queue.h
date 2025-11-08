@@ -10,7 +10,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#define QUEUE_DEPTH 10
+#define QUEUE_DEPTH 400
 
 typedef struct {int16_t head; int16_t load; int32_t buffer[QUEUE_DEPTH+3];} Queue;
 
@@ -22,5 +22,7 @@ bool enqueue(Queue* this, int32_t data);
 bool dequeue(Queue* this, int32_t* data);
 
 void monitor_queues();
+
+void init_all_queues();
 
 #endif /* INC_QUEUE_H_ */
