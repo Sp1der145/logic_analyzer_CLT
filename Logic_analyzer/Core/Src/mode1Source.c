@@ -1,5 +1,6 @@
 #include "main.h"
 #include "mode1Source.h"
+#include "mode1TimerISR.h"
 
 /* ------------------------------------------------------ */
 /* ---------------------- QUEUE VARS -------------------- */
@@ -11,12 +12,6 @@ volatile uint32_t _sampleRate = 5;   // Can be 0–10
 /* ------------------------------------------------------ */
 /* ------------------ LOCAL VARS --------------- */
 /* ------------------------------------------------------ */
-// Input and FSM variables are file-private
-static uint8_t P_A_in = UNPRESSED;
-static uint8_t P_B_in = UNPRESSED;
-static uint8_t C_A_in;
-static uint8_t C_B_in;
-
 // GPIO input snapshots
 static uint8_t inPA9;
 static uint8_t inPA10;
@@ -76,7 +71,7 @@ static const struct qTransition triggerCycles[6] = {
 /* ------------------------------------------------------ */
 static struct completeFSM EncA = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 static struct completeFSM EncB = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
-static struct completeFSM btnInc = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
+static struct completeFSM btnPush = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
 static struct completeFSM triggerTraceFSM = { .q = pgtMiddle, .numTransitions = 6, .table = triggerCycles };
 
 /* ------------------------------------------------------ */
@@ -115,54 +110,54 @@ static inline void updateInputs(void) {
 /* ------------------------------------------------------ */
 /* ---------------------- FSM TASKS ---------------------- */
 /* ------------------------------------------------------ */
-void checkChannelA(void) {
+void checkChannelA_B(void) {
     updateInputs();
 
-    C_A_in = getFSMoutput(&EncA, inPA9);
-    C_B_in = getFSMoutput(&EncB, inPA10);
-    //CHANGE THE IFs
-    if (C_A_in != P_A_in) {
-        if (C_A_in != C_B_in) {
-            if (_sampleRate > 1) _sampleRate--;
-        } else {
-            if (_sampleRate < 10) _sampleRate++;
-        }
-        P_A_in = C_A_in;
-    }
+    // Debunce and gather Channel A & B
+    uint8_t A_out = getFSMoutput(&EncA, inPA9);
+    uint8_t B_out = getFSMoutput(&EncB, inPA10);
+
+    // Remember the old A value (Set as 0/Unpressed first)
+    static uint8_t oldA = UNPRESSED;
+
+    // Only act when A changes from UNPRESSED -> PRESSED
+	if (oldA == UNPRESSED && A_out == PRESSED) {
+		// If Channel B is high, rotation is one direction; if low, the other.
+		if (B_out) {
+			//Inc Sample rate to 10 MAX
+			if (_sampleRate < 10) _sampleRate++;
+		} else {
+			// Dec Sample rate to 1 MIN
+			if (_sampleRate > 1) _sampleRate--;
+		}
+		// Update the Current SampleTimer
+		updateSampleTimer();
+	}
+    oldA = A_out;
+
+    // DOUBLE CHECK that sample rate is a between 1 & 10
+    if (_sampleRate < 1) _sampleRate = 1;
+    if (_sampleRate > 10) _sampleRate = 10;
 }
 
-void checkChannelB(void) {
-    updateInputs();
-
-    C_A_in = getFSMoutput(&EncA, inPA9);
-    C_B_in = getFSMoutput(&EncB, inPA10);
-    //CHANGE THE IFs
-    if (C_B_in != P_B_in) {
-        if (C_B_in == C_A_in) {
-            if (_sampleRate > 1) _sampleRate--;
-        } else {
-            if (_sampleRate < 10) _sampleRate++;
-        }
-        P_B_in = C_B_in;
-    }
-}
 
 void nextTriggerTrace(void) {
     updateInputs();
-    //BUTTON STILL MIGHT NEED FIXED
-    uint8_t buttonPress = getFSMoutput(&btnInc, inPA8);
-    uint8_t newTrace = getFSMoutput(&triggerTraceFSM, buttonPress);
-    if (newTrace+1 == PBRELEASE) {
+    uint8_t buttonOutput = getFSMoutput(&btnPush, inPA8);
+    // Advance the trigger trace when the button is RELEASED
+    // Which means that it had to be PRESSED in the first place hence why it only updates after release
+    if (buttonOutput == PBRELEASE) {
+        uint8_t newTrace = getFSMoutput(&triggerTraceFSM, 1);
         setTriggerTrace(newTrace);
     }
 }
+
 
 /* ------------------------------------------------------ */
 /* ---------------------- TASK CALLERS ------------------- */
 /* ------------------------------------------------------ */
 void checkEncoderInputs(void) {
-    checkChannelA();
-    checkChannelB();
+	checkChannelA_B();
 }
 
 void checkButtonFSM(void) {

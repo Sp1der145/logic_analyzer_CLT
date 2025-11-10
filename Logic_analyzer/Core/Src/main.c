@@ -29,6 +29,12 @@
 #include "display.h"
 #include "queue.h"
 #include "SoftwareSPI.h"
+#include "mode1TimerISR.h"
+#include "mode1Source.h"
+// For TIM_HandleTypeDef, HAL_TIM_xx functions
+#include "stm32l4xx_hal.h"
+// For timer support
+#include "stm32l4xx_hal_tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +55,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 UART_HandleTypeDef huart2;
+//MIGHT NEED TO REMOVE
+TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN PV */
 
@@ -86,7 +94,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -117,7 +124,7 @@ int main(void)
   //displayClear(); // this is the problem function ATM
 
 
-
+  initSampleTimer();   // <-- NEW: start periodic sample timer
 
   /* USER CODE END 2 */
 
@@ -135,7 +142,10 @@ int main(void)
 	  monitor_queues();
 	  SW_SPI();
 
-
+	  // Check Encoder
+	  checkEncoderInputs();
+	  // Check/Update Button
+	  checkButtonFSM();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
