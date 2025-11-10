@@ -5,9 +5,9 @@
  *      Author: trloeffler20
  */
 
-#ifndef INC_DOGS_CHARACTER_LOOKUP_H_
-#define INC_DOGS_CHARACTER_LOOKUP_H_
+#ifndef INC_ALPHA_CHAR_LOOKUP_H_
+#define INC_ALPHA_CHAR_LOOKUP_H_
 
 int8_t char_to_DOGShex(int8_t data);
 
-#endif /* INC_DOGS_CHARACTER_LOOKUP_H_ */
+#endif /* INC_ALPHA_CHAR_LOOKUP_H_ */

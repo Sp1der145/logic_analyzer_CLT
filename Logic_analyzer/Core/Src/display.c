@@ -28,57 +28,26 @@
  */
 
 #include "display.h"
+#include "SoftwareSPI.h"
+#include "queue.h"
+
+extern Queue SPI_q;
+
 
 void displayOn(){
-	command(0xAF);
+	//sendSPI_GRAPH(0xAF, false);
+	enqueue(&SPI_q, 0x010000AF);
+
 	return;
 }
 
 void displayOff(){
-	command(0xAE);
+	//sendSPI_GRAPH(0xAE, false);
+	enqueue(&SPI_q, 0x010000AE);
 	return;
 }
 
-void softSPI(uint8_t data, bool is_data){
-	uint8_t shift;
-    GPIOA -> ODR &= ~(1<<GCS);
-	for(int8_t i = 7; i>=0; i--){
-		shift = (!!(data&(1<<i)));
-		if(shift){
-			GPIOA -> ODR |= (1<<GMOSI);
-		}
-		else{
-			GPIOA -> ODR &= ~(1<<GMOSI);
-		}
 
-		for(volatile int i=0; i<50; i++);
-		GPIOA -> ODR |= (1<<GCLK);
-		for(volatile int i=0; i<50; i++);
-		GPIOA -> ODR &= ~(1<<GCLK);
-	}
-    GPIOA -> ODR |= (1<<GCS);
-}
-
-void sendData(uint8_t byte, bool is_data) {
-    if (is_data){
-    	GPIOB -> ODR |= (1<<GCD);
-    }
-    else{
-    	GPIOB -> ODR &= ~(1<<GCD);
-    }
-
-	softSPI(byte, is_data);
-
-	for(volatile uint32_t i=0; i<100; i++); //For debugging pleasure
-}
-
-void command(uint8_t cmd) {
-	sendData(cmd, false);
-}
-
-void giveData(uint8_t data) {
-	sendData(data, true);
-}
 
 void reset(void) {
 	GPIOB -> ODR &= ~(1<<GRESET);
@@ -90,30 +59,51 @@ void reset(void) {
 void lcd_init(void) {
 	reset();
 
-	command(0xAE);
-    command(0x40); // Set display start line = 0
-    command(0xA1); // Reverse view
-    command(0xC0); // COM mode
-    command(0xA4); // All Pixels On
-    command(0xA6); // Display Inverse Off
-    command(0xA2); // Bias 1/9
-    command(0x2F); // Power control
-    command(0x27); // Resistor ratio
-    command(0x81); // Set contrast
-    command(0x18); // Contrast value
-    command(0xFA); // Temperature curve
-    command(0x90); // Temperature curve
-    displayClear();
-	command(0xAF);
+	displayOff();
+/*
+	sendSPI_GRAPH(0x40, false); // Set display start line = 0
+	sendSPI_GRAPH(0xA1, false); // Reverse view
+	sendSPI_GRAPH(0xC0, false); // COM mode
+	sendSPI_GRAPH(0xA4, false); // All Pixels On
+	sendSPI_GRAPH(0xA6, false); // Display Inverse Off
+	sendSPI_GRAPH(0xA2, false); // Bias 1/9
+	sendSPI_GRAPH(0x2F, false); // Power control
+	sendSPI_GRAPH(0x27, false); // Resistor ratio
+	sendSPI_GRAPH(0x81, false); // Set contrast
+	sendSPI_GRAPH(0x18, false); // Contrast value
+	sendSPI_GRAPH(0xFA, false); // Temperature curve
+	sendSPI_GRAPH(0x90, false); // Temperature curve
+*/
+	enqueue(&SPI_q, 0x01000040);
+	enqueue(&SPI_q, 0x010000A1);
+	enqueue(&SPI_q, 0x010000C0);
+	enqueue(&SPI_q, 0x010000A4);
+	enqueue(&SPI_q, 0x010000A6);
+	enqueue(&SPI_q, 0x010000A2);
+	enqueue(&SPI_q, 0x0100002F);
+	enqueue(&SPI_q, 0x01000027);
+	enqueue(&SPI_q, 0x01000081);
+	enqueue(&SPI_q, 0x01000018);
+	enqueue(&SPI_q, 0x010000FA);
+	enqueue(&SPI_q, 0x01000090);
+
+	//displayClear(); // this is the problem function ATM
+
+	displayOn();
+
 }
 
 void displayClear() {
     for(int page = 0; page < 8; page++){
-        command(0xB0 | page);                      // Set page
+    	//sendSPI_GRAPH((0xB0 | page), false);		// Set page
+    	enqueue(&SPI_q, (0x010000B0 | page));
         for(int col = 0; col < 132; col++){
-            command(0x10 | ((col >> 4) & 0x0F));
-            command(0x00 | (col & 0x0F));
-            giveData(0x00);                        // Clear each byte
+        	//sendSPI_GRAPH((0x10 | ((col >> 4) & 0x0F)), false);
+        	enqueue(&SPI_q, (0x01000010 | ((col >> 4) & 0x0F)));
+        	//sendSPI_GRAPH((0x00 | (col & 0x0F)), false);
+        	enqueue(&SPI_q, (0x01000000 | (col & 0x0F)));
+        	//sendSPI_GRAPH(0x00, true);				// Clear each byte
+        	enqueue(&SPI_q, 0x01100000);				// Clear each byte
         }
     }
 }
@@ -125,9 +115,13 @@ void draw_pixel(uint8_t x, uint8_t y) {
     uint8_t bit  = y % 8;
     uint8_t data = (1 << bit);
 
-    command(0xB0 | page);               // Set page
-    command(0x10 | ((x >> 4) & 0x0F));  // Correct MSB
-    command(0x00 | (x & 0x0F));         // LSB
-    giveData(data);                      // Send the byte
+    //sendSPI_GRAPH((0xB0 | page), false);             	// Set page
+    enqueue(&SPI_q, (0x010000B0 | page));				// Set page
+    //sendSPI_GRAPH((0x10 | ((x >> 4) & 0x0F)), false);  	// Correct MSB
+    enqueue(&SPI_q, (0x01000010 | ((x >> 4) & 0x0F)));		// Correct MSB
+    //sendSPI_GRAPH((0x00 | (x & 0x0F)), false);        // LSB
+    enqueue(&SPI_q, (0x01000000 | (x & 0x0F)));			// LSB
+    //sendSPI_GRAPH(data, true);                      	// Send the byte
+    enqueue(&SPI_q, (0x01100000 | data));				// Send the byte
 }
 

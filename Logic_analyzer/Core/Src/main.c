@@ -17,12 +17,18 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+
+
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "DOGS_display_functions.h"
-#include "extra_q_functions.h"
+#include "ALPHA_display_driver.h"
+#include "M2_interpreter.h"
+#include "artist.h"
+#include "display.h"
+#include "queue.h"
+#include "SoftwareSPI.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,13 +102,19 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
+
   SPI1->CR1 |= SPI_CR1_SPE_Msk; // Enabling SPI1
   SPI1->CR2 |= SPI_CR2_RXNEIE_Msk; // Enable receive interrupts
   __enable_irq();
 
-  //init_display();
-  //setup_display();
+  init_all_queues();
+
+
+  init_display();
+  SW_SPI();
+
   lcd_init();
+  //displayClear(); // this is the problem function ATM
 
 
 
@@ -112,40 +124,17 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  displayClear();
-  for(volatile int i = 0; i<1000; i++){}
+
   while (1)
   {
-	//Functions to be ran
-	  //update_char_display();
-	  //Encoder KINDA works, goes up/down then goes back to 5 somehow??
-	  checkEncoderInputs();
-	  checkButtonFSM();
-	  //monitor_IT_flags();
-	  //monitor_queues();
-	//Temp testing vals
-	  uint32_t rate = getSampleRate();
-	  uint8_t trace = getTriggerTrace();
+	  GPIOA->ODR ^= (1<<3); // for performance
+	  draw();
 
-	  //GPIOA->ODR ^= (1<<3);
-	  //draw();
-	  /*command(0xB1);
-  	  for(int i = 0; i<8; i++){
-  		  for(int j = 0; j<4; j++){
-		  	  giveData(data[i]);
-	  	  }
-  		  if(i>0){
-  			  if(data[i]!=data[i-1]){
-  			  	  giveData(0xFF);
-  			  }
-  		  }
-  	  }*/
-	  //complete = true;
-	  /*GPIOA->ODR ^= (1<<3);
 	  update_char_display();
 	  monitor_IT_flags();
 	  monitor_queues();
-	  monitor_queues();*/
+	  SW_SPI();
+
 
     /* USER CODE END WHILE */
 
