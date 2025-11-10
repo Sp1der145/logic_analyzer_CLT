@@ -6,54 +6,76 @@
  */
 
 #include "mode1TimerISR.h"
-#include "mode1Source.h"   // For access to getSampleRate()
+// NEED TO CHANGE ONCE THE QUEUES HAVE BEEN SET UP
+// For access to getSampleRate()
+#include "mode1Source.h"
 #include "main.h"
+#include "stm32l4xx_ll_tim.h"
+#include "stm32l4xx_ll_bus.h"
+#include "stm32l4xx_ll_utils.h"
+#include "stm32l4xx_ll_cortex.h"
+
 
 /* ------------------------------------------------------ */
-/* ---------------------- EXTERNAL TIMER ----------------- */
+/* ---------------------- Globals ----------------------- */
 /* ------------------------------------------------------ */
-// TBH don't know if this is the correct timer handler needs to match our CubeMX Setup so..
-// Hopefully we can figure out which one is correct
-extern TIM_HandleTypeDef htim2;
+// Initial sample period
+volatile uint32_t samplePeriod = 1000;
 
 /* ------------------------------------------------------ */
-/* ---------------------- CONFIGURATION ------------------ */
+/* ------------ Timer Initialization (LL) --------------- */
 /* ------------------------------------------------------ */
-// Base timer frequency (US MicroSeconds)
-#define BASE_PERIOD_US 100000  // 100 ms base period
+void initSampleTimer_LL(void)
+{
+    // Enable TIM6 clock
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
 
-/* ------------------------------------------------------ */
-/* ---------------------- INITIALIZATION ----------------- */
-/* ------------------------------------------------------ */
-void initSampleTimer(void) {
-    // Ensure timer starts in interrupt mode
-    HAL_TIM_Base_Start_IT(&htim2);
+    // Configure TIM6
+    // Adjust as needed
+    LL_TIM_SetPrescaler(TIM6, 16 - 1);
+    LL_TIM_SetAutoReload(TIM6, samplePeriod-1);
+    LL_TIM_SetCounterMode(TIM6, LL_TIM_COUNTERMODE_UP);
+    LL_TIM_EnableARRPreload(TIM6);
+
+    // Enable update interrupt
+    LL_TIM_EnableIT_UPDATE(TIM6);
+
+    // Enable IRQ (in NVIC)
+    NVIC_SetPriority(TIM6_DAC_IRQn, 0);
+    NVIC_EnableIRQ(TIM6_DAC_IRQn);
+
+    // Start the counter
+    LL_TIM_EnableCounter(TIM6);
 }
 
 /* ------------------------------------------------------ */
-/* ---------------------- PERIOD UPDATE ------------------ */
+/* ---------------- Update Timer Period ----------------- */
 /* ------------------------------------------------------ */
-void updateSampleTimer(void) {
-    // Stop timer before reconfiguring
-    HAL_TIM_Base_Stop_IT(&htim2);
-
-    // Set new period based on sample rate
-    uint32_t newPeriod = BASE_PERIOD_US / _sampleRate;
-
-    // Convert microseconds to timer ticks
-    // Assuming timer clock = 1 MHz (1 tick = 1 µs)
-    __HAL_TIM_SET_AUTORELOAD(&htim2, newPeriod - 1);
-
+void updateSampleTimer_LL(uint32_t newPeriod)
+{
+    samplePeriod = newPeriod;
+    // Temporarily stop timer
+    LL_TIM_DisableCounter(TIM6);
+    // Update auto-reload register
+    LL_TIM_SetAutoReload(TIM6, samplePeriod - 1);
+    // Reset counter
+    LL_TIM_SetCounter(TIM6, 0);
     // Restart timer
-    HAL_TIM_Base_Start_IT(&htim2);
+    LL_TIM_EnableCounter(TIM6);
 }
 
 /* ------------------------------------------------------ */
-/* ---------------------- TIMER ISR ---------------------- */
+/* --------------- TIM6 IRQ Handler --------------------- */
 /* ------------------------------------------------------ */
-// Call automatically by HAL when timer period elapses
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if (htim == &htim2) {
-        performDataSample();
+void TIM6_DAC_IRQHandler(void)
+{
+    // Check update flag
+    if(LL_TIM_IsActiveFlag_UPDATE(TIM6))
+    {
+        // Clear interrupt flag
+        LL_TIM_ClearFlag_UPDATE(TIM6);
+        // Call sampling routine
+        // EXAMPLE: collectSample();
+        //Need to talk with Logan to see how we want to set this up
     }
 }

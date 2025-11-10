@@ -31,10 +31,6 @@
 #include "SoftwareSPI.h"
 #include "mode1TimerISR.h"
 #include "mode1Source.h"
-// For TIM_HandleTypeDef, HAL_TIM_xx functions
-#include "stm32l4xx_hal.h"
-// For timer support
-#include "stm32l4xx_hal_tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,8 +51,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 UART_HandleTypeDef huart2;
-//MIGHT NEED TO REMOVE
-TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN PV */
 
@@ -123,8 +117,8 @@ int main(void)
   lcd_init();
   //displayClear(); // this is the problem function ATM
 
-
-  initSampleTimer();   // <-- NEW: start periodic sample timer
+  //MODE 1 TIMER INIT
+  initSampleTimer_LL();
 
   /* USER CODE END 2 */
 

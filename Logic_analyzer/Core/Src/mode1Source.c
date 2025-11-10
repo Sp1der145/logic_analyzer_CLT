@@ -131,7 +131,7 @@ void checkChannelA_B(void) {
 			if (_sampleRate > 1) _sampleRate--;
 		}
 		// Update the Current SampleTimer
-		updateSampleTimer();
+		updateSampleTimer_LL(_sampleRate);
 	}
     oldA = A_out;
 
