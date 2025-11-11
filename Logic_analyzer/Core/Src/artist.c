@@ -48,6 +48,7 @@ void draw(){
 			  //sendSPI_GRAPH(0x01, true);
 			  enqueue(&SPI_q, 0x01100001);
 		  }
+
 		  //sendSPI_GRAPH(0xB3, false);
 		  enqueue(&SPI_q, 0x010000B3);
 		  for(int i = 0; i<3; i++){

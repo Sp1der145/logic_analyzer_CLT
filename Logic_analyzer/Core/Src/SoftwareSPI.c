@@ -142,9 +142,9 @@ void softSPI_MSB(uint8_t data, bool is_data){
 			GPIOA -> ODR &= ~(1<<GMOSI);
 		}
 
-		for(volatile int i=0; i<50; i++); // does this delay need to be 50?
+		for(volatile int i=0; i<5; i++); // does this delay need to be 50?
 		GPIOA -> ODR |= (1<<GCLK);
-		for(volatile int i=0; i<50; i++);
+		for(volatile int i=0; i<5; i++);
 		GPIOA -> ODR &= ~(1<<GCLK);
 	}
 
