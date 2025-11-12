@@ -26,10 +26,10 @@ extern Queue M1_setup_q;  // Mode 1 queue that contains the sample rate info
 /* ------------------------------------------------------ */
 void initSampleTimer(void) {
     // Configure LL timer for periodic interrupts
-    LL_TIM_SetPrescaler(TIM6, 79);      // Adjust for desired freq
-    LL_TIM_SetAutoReload(TIM6, 999);    // Period count
-    LL_TIM_EnableIT_UPDATE(TIM6);
-    LL_TIM_EnableCounter(TIM6);
+    LL_TIM_SetPrescaler(TIM7, 79);      // Adjust for desired freq
+    LL_TIM_SetAutoReload(TIM7, 999);    // Period count
+    LL_TIM_EnableIT_UPDATE(TIM7);
+    LL_TIM_EnableCounter(TIM7);
 }
 
 /* ------------------------------------------------------ */
@@ -38,23 +38,23 @@ void initSampleTimer(void) {
 void updateSampleTimer_LL(uint32_t newPeriod)
 {
 	samplePeriod = newPeriod;
-    LL_TIM_DisableCounter(TIM6);
+    LL_TIM_DisableCounter(TIM7);
     // Update auto-reload register
-    LL_TIM_SetAutoReload(TIM6, samplePeriod - 1);
+    LL_TIM_SetAutoReload(TIM7, samplePeriod - 1);
     // Restart timer
-    LL_TIM_EnableCounter(TIM6);
+    LL_TIM_EnableCounter(TIM7);
 }
 
 /* ------------------------------------------------------ */
-/* --------------- TIM6 IRQ Handler --------------------- */
+/* --------------- TIM7 IRQ Handler --------------------- */
 /* ------------------------------------------------------ */
-void TIM6_DAC_IRQHandler(void)
+void TIM7_DAC_IRQHandler(void)
 {
     // Check update flag
-    if(LL_TIM_IsActiveFlag_UPDATE(TIM6))
+    if(LL_TIM_IsActiveFlag_UPDATE(TIM7))
     {
         // Clear interrupt flag
-        LL_TIM_ClearFlag_UPDATE(TIM6);
+        LL_TIM_ClearFlag_UPDATE(TIM7);
         // Enqueue a sample event (simple counter or flag)
         enqueue(&M1_setup_q, 1);
     }

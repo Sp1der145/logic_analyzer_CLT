@@ -10,7 +10,7 @@
 #include "main.h"
 #include "mode1Source.h"
 
-#define SAMPLE_SIZE 102
+#define SAMPLE_SIZE 8
 
 /* ------------------------------------------------------ */
 /* ---------------------- LOCAL VARS -------------------- */

@@ -162,29 +162,35 @@ void nextTriggerTrace(void) {
 /* ---------------------- TASK CALLERS ------------------ */
 /* ------------------------------------------------------ */
 void checkEncoderInputs(void) {
-	checkChannelA_B();
+	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
+		checkChannelA_B();
+	}
 }
 
 void checkButtonFSM(void) {
-    nextTriggerTrace();
+	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
+		nextTriggerTrace();
+	}
 }
 
 void checkTriggerEdges(void) {
-    uint8_t curPB0 = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_0);
-    uint8_t curPA12 = LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_12);
-    uint8_t curPB3 = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_3);
+	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
+		uint8_t curPB0 = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_0);
+		uint8_t curPA12 = LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_12);
+		uint8_t curPB3 = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_3);
 
-    // Positive edges
-    if (!prevPB0 && curPB0) enqueue(&M1_trigger_q, ptgTop);
-    if (!prevPA12 && curPA12) enqueue(&M1_trigger_q, pgtMiddle);
-    if (!prevPB3 && curPB3) enqueue(&M1_trigger_q, pgtBottom);
+		// Positive edges
+		if (!prevPB0 && curPB0) enqueue(&M1_trigger_q, ptgTop);
+		if (!prevPA12 && curPA12) enqueue(&M1_trigger_q, pgtMiddle);
+		if (!prevPB3 && curPB3) enqueue(&M1_trigger_q, pgtBottom);
 
-    // Negative edges
-    if (prevPB0 && !curPB0) enqueue(&M1_trigger_q, ngtTop);
-    if (prevPA12 && !curPA12) enqueue(&M1_trigger_q, ngtMiddle);
-    if (prevPB3 && !curPB3) enqueue(&M1_trigger_q, ngtBottom);
+		// Negative edges
+		if (prevPB0 && !curPB0) enqueue(&M1_trigger_q, ngtTop);
+		if (prevPA12 && !curPA12) enqueue(&M1_trigger_q, ngtMiddle);
+		if (prevPB3 && !curPB3) enqueue(&M1_trigger_q, ngtBottom);
 
-    prevPB0 = curPB0;
-    prevPA12 = curPA12;
-    prevPB3 = curPB3;
+		prevPB0 = curPB0;
+		prevPA12 = curPA12;
+		prevPB3 = curPB3;
+	}
 }
