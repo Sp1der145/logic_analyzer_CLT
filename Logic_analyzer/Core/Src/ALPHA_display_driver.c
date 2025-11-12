@@ -363,6 +363,10 @@ void update_char_display(){
 	// Mode2: SPI
 	static uint8_t mode = 1;
 
+	if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_0)){
+
+	}
+
 	int32_t message; // Variable that data will be dequeued to
 
 	uint16_t CS_period; // Do I need different variables all of these?
