@@ -36,7 +36,7 @@ void clear_display(){
 	const int32_t message = 0x02100020;
 
 	// In order to cycle through, each line has 4 extra "ghost spots", meaning 16 real spots + 4 to fill a line, 80 for 4 rows
-	for (uint8_t i = 0; i < 40; i++){
+	for (uint8_t i = 0; i < 80; i++){
 		enqueue(&SPI_q, message);	// 0x20 = space (nothing)
 	  }
 
@@ -363,9 +363,6 @@ void update_char_display(){
 	// Mode2: SPI
 	static uint8_t mode = 1;
 
-	if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_0)){
-
-	}
 
 	int32_t message; // Variable that data will be dequeued to
 
@@ -379,39 +376,60 @@ void update_char_display(){
 		return;
 	}
 
-	// 0x0FFF in the header means lower 16 bits are mode
-	if ((message & 0x0FFF0000) == 0x0FFF0000){
-		if ((uint8_t)(message & 0xF) != mode){	// If the mode message is not the same as the current mode, then the mode has changed
-			mode = (uint8_t)(message & 0xF); 	// Change the mode to what the message said
-			setup_display(mode);				// Change the display since the mode has changed
+
+	// Mode 1
+	if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
+		if (mode != 1){
+			mode = 1;
+			setup_display(mode);
+		}
+
+
+		// 0x0200 in the header means lower 16 bits are sample rate
+		if ((message & 0x0F000000) == 0x02000000){
+			sample_rate = (uint16_t)(message & 0xFF);
+			update_SR(sample_rate);
+		}
+
+		// 0x0100 in the header means lower 16 bits are trigger mode
+		else if ((message & 0x0F000000) == 0x01000000){
+			trigger_mode = (uint16_t)(message & 0xFFFF);
+			update_period(trigger_mode);
+		}
+
+	}
+
+	// Mode 2
+	if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 1){
+		if (mode != 2){
+			mode = 2;
+			setup_display(mode);
+		}
+
+
+		// Updating SPI Values if in mode 2
+		// 0x0800 in the header means lower 16 bits are SPI data
+		if ((message & 0x0F000000) == 0x08000000){
+			SPI_data = (uint16_t)(message & 0xFF);
+			update_MSG(SPI_data);
+		}
+
+		// 0x0400 in the header means lower 16 bits are CS period
+		else if ((message & 0x0F000000) == 0x04000000){
+			CS_period = (uint16_t)(message & 0xFFFF);
+			update_period(CS_period);
 		}
 	}
 
 
-	// 0x0800 in the header means lower 16 bits are SPI data
-	else if ((message & 0x0F000000) == 0x08000000){
-		SPI_data = (uint16_t)(message & 0xFF);
-		update_MSG(SPI_data);
-	}
-
-	// 0x0400 in the header means lower 16 bits are CS period
-	else if ((message & 0x0F000000) == 0x04000000){
-		CS_period = (uint16_t)(message & 0xFFFF);
-		update_period(CS_period);
-	}
 
 
-	// 0x0200 in the header means lower 16 bits are sample rate
-	else if ((message & 0x0F000000) == 0x02000000){
-		sample_rate = (uint16_t)(message & 0xFF);
-		update_SR(sample_rate);
-	}
 
-	// 0x0100 in the header means lower 16 bits are trigger mode
-	else if ((message & 0x0F000000) == 0x01000000){
-		trigger_mode = (uint16_t)(message & 0xFFFF);
-		update_period(trigger_mode);
-	}
+
+
+
+
+
 
 	return;
 }
