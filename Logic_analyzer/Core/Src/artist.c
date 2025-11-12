@@ -11,23 +11,18 @@
 #include "queue.h"
 
 extern Queue SPI_q;
-extern Queue M2_q;
+extern Queue M1_data_q;
 
 void draw(){
 	uint16_t clk[8] = {0x80,0x01,0x80,0x01,0x80,0x01,0x80,0x01};
-	int32_t message;
 	uint16_t data[8] = {0x80,0x80,0x80,0x01,0x80,0x80,0x01,0x01};
-	//static uint16_t oldData[8] = {0x00,0x80,0x80,0x01,0x80,0x80,0x01,0x01};
+	uint16_t fill[8] = {0x80,0x80,0x80,0x01,0x80,0x80,0x01,0x01};
 
-	/*if(oldData[0] != data[0]){
-		reset();
-		oldData[0] = data[0];
-	}*/
-
-	bool haveData = dequeue(&M2_q, &message);
-
+	bool haveData = dequeue(&M1_data_q, &fill);
+	haveData = dequeue(&M1_data_q, &data);
+	haveData = dequeue(&M1_data_q, &fill);
 	if(!haveData){
-		//return;
+		return;
 	}
 
 
@@ -78,8 +73,14 @@ void draw(){
 		  		  if((i==7)&&(n==1)){
 		  			  break;
 		  		  }
-		  		  if(i>0){
+		  		  if(i<6){
 		  		  	  if(data[i]!=data[i+1]){
+		  		  		  //sendSPI_GRAPH(0xFF, true);
+		  		  		  enqueue(&SPI_q, 0x011000FF);
+		  		  	  }
+		  		  }
+		  		  else{
+		  		  	  if(data[7]!=0x01){
 		  		  		  //sendSPI_GRAPH(0xFF, true);
 		  		  		  enqueue(&SPI_q, 0x011000FF);
 		  		  	  }
