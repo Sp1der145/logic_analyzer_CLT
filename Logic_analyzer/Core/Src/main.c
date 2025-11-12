@@ -17,8 +17,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-
-
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -29,6 +27,8 @@
 #include "display.h"
 #include "queue.h"
 #include "SoftwareSPI.h"
+#include "mode1TimerISR.h"
+#include "mode1Source.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -86,7 +86,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -116,9 +115,6 @@ int main(void)
   lcd_init();
   //displayClear(); // this is the problem function ATM
 
-
-
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -136,7 +132,10 @@ int main(void)
 	  draw();
 
 
-
+	  // Check Encoder
+	  checkEncoderInputs();
+	  // Check/Update Button
+	  checkButtonFSM();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -399,7 +398,7 @@ static void MX_GPIO_Init(void)
   /**/
   GPIO_InitStruct.Pin = LL_GPIO_PIN_5;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /**/
