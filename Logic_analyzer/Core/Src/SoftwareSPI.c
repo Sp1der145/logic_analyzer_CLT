@@ -52,9 +52,9 @@ void SW_SPI(){
 	// 335 for the graphics display every cycle
 
 	// Timing:	43us for the ALPHA_display messages
-	// 			205us for the GRAPH_display messages
+	// 			15us for the GRAPH_display messages
 
-	// Deadline = ??us = ?? messages at a time
+	// Deadline = 100us = 2-4 messages at a time (depending on what type of message
 
 	for(uint16_t i = 0; i<400; i++){
 		// Iterating through until there is no data left
@@ -142,9 +142,9 @@ void softSPI_MSB(uint8_t data, bool is_data){
 			GPIOA -> ODR &= ~(1<<GMOSI);
 		}
 
-		for(volatile int i=0; i<5; i++); // does this delay need to be 50?
+		//for(volatile int i=0; i<2; i++); // does this delay need to be 50?
 		GPIOA -> ODR |= (1<<GCLK);
-		for(volatile int i=0; i<5; i++);
+		//for(volatile int i=0; i<2; i++);
 		GPIOA -> ODR &= ~(1<<GCLK);
 	}
 
