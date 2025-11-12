@@ -21,6 +21,7 @@
 
 Queue M1_setup_q;	// Mode1 Setup Queue
 Queue M1_data_q;	// Mode1 Data Queue
+Queue M1_trigger_q;	// Mode1 Trigger Queue
 Queue M2_q;			// Mode2 Queue
 Queue SPI_q;		// SPI Queue
 

@@ -29,6 +29,7 @@
 #include "SoftwareSPI.h"
 #include "mode1TimerISR.h"
 #include "mode1Source.h"
+#include "dataCollection.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,9 +113,13 @@ int main(void)
 
   init_all_queues();
 
+  initSampleTimer();
+
 
   init_display();
   SW_SPI();
+
+
 
   lcd_init();
   //displayClear(); // this is the problem function ATM
@@ -133,6 +138,13 @@ int main(void)
 	checkEncoderInputs();
 	// Check/Update Button
 	checkButtonFSM();
+	// Checking trigger edges
+	checkTriggerEdges();
+
+	//Comment
+	TIM7_DAC_IRQHandler();
+	//Comment
+	dataCollectionTask();
 
 	// Update the character display
 	update_char_display();

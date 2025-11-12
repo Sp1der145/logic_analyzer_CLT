@@ -13,7 +13,7 @@
 #include "stm32l4xx_ll_spi.h"
 #include "stm32l4xx_ll_bus.h"
 
-#define SAMPLE_SIZE 8
+#define SAMPLE_SIZE 7
 
 /* ------------------------------------------------------ */
 /* ---------------------- LOCAL VARS -------------------- */

@@ -51,5 +51,6 @@ void checkChannelB(void);
 void nextTriggerTrace(void);
 void checkEncoderInputs(void);
 void checkButtonFSM(void);
+void checkTriggerEdges(void);
 
 #endif /* MODE1SOURCE_H_ */

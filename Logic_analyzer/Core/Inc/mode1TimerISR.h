@@ -32,7 +32,7 @@ extern volatile uint8_t sampleReadyFlag;
  * @brief  Initialize TIM6 as periodic timer with interrupt (LL-based)
  *         Starts the timer immediately.
  */
-void initSampleTimer_LL(void);
+void initSampleTimer(void);
 
 /**
  * @brief  Update the sample rate (timer period)
@@ -49,7 +49,7 @@ void collectSample(void);
 /**
  * @brief  TIM6 IRQ handler (declared here so main.c can reference it if needed)
  */
-void TIM6_DAC_IRQHandler(void);
+void TIM7_DAC_IRQHandler(void);
 
 #ifdef __cplusplus
 }
