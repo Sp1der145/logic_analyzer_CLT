@@ -76,9 +76,9 @@ void dataCollectionTask(void) {
 
             if (sampleIndex >= SAMPLE_SIZE) {
                 // Sampling complete — enqueue array pointers
-                enqueue(&M1_data_q, (int32_t)(uintptr_t)trace1Array);
-                enqueue(&M1_data_q, (int32_t)(uintptr_t)trace2Array);
-                enqueue(&M1_data_q, (int32_t)(uintptr_t)trace3Array);
+                enqueue(&M1_data_q, (int32_t)trace1Array);
+                enqueue(&M1_data_q, (int32_t)trace2Array);
+                enqueue(&M1_data_q, (int32_t)trace3Array);
 
                 isCollecting = 0; //Reset Collecting Val
                 triggerType = -1; //Set to impossible trigger type val

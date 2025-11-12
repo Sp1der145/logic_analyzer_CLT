@@ -124,12 +124,13 @@ int main(void)
   while (1)
   {
 	  GPIOA->ODR ^= (1<<3); // for performance
-	  draw();
 
 	  update_char_display();
 	  monitor_IT_flags();
 	  monitor_queues();
 	  SW_SPI();
+	  draw();
+
 
 	  // Check Encoder
 	  checkEncoderInputs();
