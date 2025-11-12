@@ -16,11 +16,14 @@ extern Queue M1_data_q;
 void draw(){
 	uint16_t clk[8] = {0x80,0x01,0x80,0x01,0x80,0x01,0x80,0x01};
 	uint16_t data[8] = {0x80,0x80,0x80,0x01,0x80,0x80,0x01,0x01};
-	uint16_t fill[8] = {0x80,0x80,0x80,0x01,0x80,0x80,0x01,0x01};
+	uint16_t fill[8] = {0x80,0x80,0x80,0x01,0x80,0x80,0x01,0x01}; // WARNING unused varaible
 
-	bool haveData = dequeue(&M1_data_q, &fill);
-	haveData = dequeue(&M1_data_q, &data);
-	haveData = dequeue(&M1_data_q, &fill);
+	int32_t fill1;
+	int32_t data1;
+
+	bool haveData = dequeue(&M1_data_q, &fill1); // Not sure whats going on here but fill and data are not the right type, also only dequeueing to the first element of the array each time?
+	haveData = dequeue(&M1_data_q, &data1);
+	haveData = dequeue(&M1_data_q, &fill1);
 	if(!haveData){
 		return;
 	}
