@@ -129,17 +129,20 @@ int main(void)
   {
 	  GPIOA->ODR ^= (1<<3); // for performance
 
-	  update_char_display();
-	  monitor_IT_flags();
-	  monitor_queues();
-	  SW_SPI();
-	  draw();
-
-
 	  // Check Encoder
 	  checkEncoderInputs();
 	  // Check/Update Button
 	  checkButtonFSM();
+	  // Run Software SPI
+	  SW_SPI();
+	  // Update the character display
+	  update_char_display();
+	  // Draw the current trace inputs onto the main display
+	  draw();
+	  //Monitor Interrupt Flags & Queues
+	  monitor_IT_flags();
+	  monitor_queues();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

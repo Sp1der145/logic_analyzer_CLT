@@ -11,6 +11,7 @@ volatile uint32_t _sampleRate = 5;   // Can be 0–10
 
 //Queue for triggerTrace&sampleRate Task Sharing
 extern Queue M1_trigger_q;
+extern Queue M2_q;
 
 /* ------------------------------------------------------ */
 /* ------------------ LOCAL VARS --------------- */
@@ -165,12 +166,14 @@ void checkEncoderInputs(void) {
 	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
 		checkChannelA_B();
 	}
+	enqueue(&M2_q, 0x02000000 | _sampleRate);
 }
 
 void checkButtonFSM(void) {
 	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
 		nextTriggerTrace();
 	}
+	enqueue(&M2_q, 0x01000000 | _triggerTrace);
 }
 
 void checkTriggerEdges(void) {
