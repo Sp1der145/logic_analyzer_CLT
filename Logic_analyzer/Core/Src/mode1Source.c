@@ -164,18 +164,23 @@ void nextTriggerTrace(void) {
 /* ---------------------- TASK CALLERS ------------------ */
 /* ------------------------------------------------------ */
 void checkEncoderInputs(void) {
+
 	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
 		checkChannelA_B();
+		enqueue(&M2_q, 0x02000000 | _sampleRate);
 	}
-	enqueue(&M2_q, 0x02000000 | _sampleRate);
+
 }
 
 void checkButtonFSM(void) {
+
 	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
 		nextTriggerTrace();
+		enqueue(&M2_q, 0x01000000 | _triggerTrace);
 	}
-	enqueue(&M2_q, 0x01000000 | _triggerTrace);
+
 }
+
 
 void checkTriggerEdges(void) {
 	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){

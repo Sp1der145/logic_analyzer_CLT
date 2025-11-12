@@ -168,8 +168,12 @@ void init_display(){
 	enqueue(&SPI_q, 0x0200003C);
 
 
-
-	setup_display(2);
+	if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
+		setup_display(1);
+	}
+	else if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
+		setup_display(2);
+	}
 
 	return;
 }
@@ -282,12 +286,12 @@ void update_SR(uint16_t sample_rate){
 	tens = (sample_rate - (hundreds*100) - (thousands*1000)) / 10;
 	ones = sample_rate - (thousands*1000) - (hundreds*100) - (tens*10);
 
+	if (tens == 0){
+		set_cursor(1,11); // Clearing part of the period to prevent any unwanted values staying on the screen
+		send_charDOGS(' ');
+		send_charDOGS(' ');
+	}
 
-	set_cursor(1,11); // Clearing part of the period to prevent any unwanted values staying on the screen
-	send_charDOGS(' ');
-	send_charDOGS(' ');
-	send_charDOGS(' ');
-	send_charDOGS(' ');
 
 	set_cursor(1,11);
 
@@ -317,28 +321,28 @@ void update_TM(uint16_t trigger_mode){
 	set_cursor(2,13);
 
 
-	if(trigger_mode == 1){
-		send_charDOGS('1');
+	if(trigger_mode == 0){
+		send_charDOGS(1);
 		send_charDOGS('R');
+	}
+	else if(trigger_mode == 1){
+		send_charDOGS(1);
+		send_charDOGS('F');
 	}
 	else if(trigger_mode == 2){
-		send_charDOGS('1');
-		send_charDOGS('F');
+		send_charDOGS(2);
+		send_charDOGS('R');
 	}
 	else if(trigger_mode == 3){
-		send_charDOGS('2');
-		send_charDOGS('R');
-	}
-	else if(trigger_mode == 4){
-		send_charDOGS('2');
+		send_charDOGS(2);
 		send_charDOGS('F');
 	}
-	else if(trigger_mode == 5){
-		send_charDOGS('3');
+	else if(trigger_mode == 4){
+		send_charDOGS(3);
 		send_charDOGS('R');
 	}
-	else if(trigger_mode == 6){
-		send_charDOGS('3');
+	else if(trigger_mode == 5){
+		send_charDOGS(3);
 		send_charDOGS('F');
 	}
 	else{
@@ -394,7 +398,7 @@ void update_char_display(){
 		// 0x0100 in the header means lower 16 bits are trigger mode
 		else if ((message & 0x0F000000) == 0x01000000){
 			trigger_mode = (uint16_t)(message & 0xFFFF);
-			update_period(trigger_mode);
+			update_TM(trigger_mode);
 		}
 
 	}

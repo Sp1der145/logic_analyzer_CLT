@@ -8,6 +8,6 @@
 #ifndef INC_M2_INTERPRETER_H_
 #define INC_M2_INTERPRETER_H_
 
-void monitor_IT_flags();
+void monitor_M2_IT_flags();
 
 #endif /* INC_M2_INTERPRETER_H_ */
