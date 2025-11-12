@@ -34,7 +34,7 @@ extern Queue M2_q;
 // This function monitors the data received from interrupts
 // In the ISRs, relevant data is stored in global variables then accessed in this function
 // The data is accessed then enqueued to the ALPHA_display_driver
-void monitor_IT_flags(){
+void monitor_M2_IT_flags(){
 
 	int32_t data;
 	uint32_t count = 0;

@@ -127,21 +127,23 @@ int main(void)
 
   while (1)
   {
-	  GPIOA->ODR ^= (1<<3); // for performance
+	GPIOA->ODR ^= (1<<3); // for performance
 
-	  // Check Encoder
-	  checkEncoderInputs();
-	  // Check/Update Button
-	  checkButtonFSM();
-	  // Run Software SPI
-	  SW_SPI();
-	  // Update the character display
-	  update_char_display();
-	  // Draw the current trace inputs onto the main display
-	  draw();
-	  //Monitor Interrupt Flags & Queues
-	  monitor_IT_flags();
-	  monitor_queues();
+	// Check Encoder
+	checkEncoderInputs();
+	// Check/Update Button
+	checkButtonFSM();
+
+	// Update the character display
+	update_char_display();
+	// Draw the current trace inputs onto the main display
+	draw();
+	//Monitor Interrupt Flags & Queues
+	monitor_M2_IT_flags();
+	monitor_queues();
+
+	// Run Software SPI Outputs
+	SW_SPI();
 
     /* USER CODE END WHILE */
 
