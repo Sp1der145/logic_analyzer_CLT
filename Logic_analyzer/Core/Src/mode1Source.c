@@ -1,6 +1,6 @@
-#include "main.h"
 #include "mode1Source.h"
-#include "mode1TimerISR.h"
+#include "queue.h"
+#include "main.h"
 
 /* ------------------------------------------------------ */
 /* ---------------------- QUEUE VARS -------------------- */
@@ -8,6 +8,9 @@
 // Only queue vars are global (shared)
 volatile uint8_t _triggerTrace = 0;  // Can be 0–5
 volatile uint32_t _sampleRate = 5;   // Can be 0–10
+
+//Queue for triggerTrace&sampleRate Task Sharing
+extern Queue M1_trigger_q;
 
 /* ------------------------------------------------------ */
 /* ------------------ LOCAL VARS --------------- */
@@ -17,8 +20,10 @@ static uint8_t inPA9;
 static uint8_t inPA10;
 static uint8_t inPA8;
 
-// FSM Don't need this??
-//static uint8_t getFSMoutput(struct completeFSM *x, uint8_t in){};
+// Previous pin states for edge detection
+static uint8_t prevPB0 = 0;
+static uint8_t prevPA12 = 0;
+static uint8_t prevPB3 = 0;
 
 /* ------------------------------------------------------ */
 /* ---------------------- FSM TABLES --------------------- */
@@ -154,7 +159,7 @@ void nextTriggerTrace(void) {
 
 
 /* ------------------------------------------------------ */
-/* ---------------------- TASK CALLERS ------------------- */
+/* ---------------------- TASK CALLERS ------------------ */
 /* ------------------------------------------------------ */
 void checkEncoderInputs(void) {
 	checkChannelA_B();
@@ -162,4 +167,24 @@ void checkEncoderInputs(void) {
 
 void checkButtonFSM(void) {
     nextTriggerTrace();
+}
+
+void checkTriggerEdges(void) {
+    uint8_t curPB0 = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_0);
+    uint8_t curPA12 = LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_12);
+    uint8_t curPB3 = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_3);
+
+    // Positive edges
+    if (!prevPB0 && curPB0) enqueue(&M1_trigger_q, ptgTop);
+    if (!prevPA12 && curPA12) enqueue(&M1_trigger_q, pgtMiddle);
+    if (!prevPB3 && curPB3) enqueue(&M1_trigger_q, pgtBottom);
+
+    // Negative edges
+    if (prevPB0 && !curPB0) enqueue(&M1_trigger_q, ngtTop);
+    if (prevPA12 && !curPA12) enqueue(&M1_trigger_q, ngtMiddle);
+    if (prevPB3 && !curPB3) enqueue(&M1_trigger_q, ngtBottom);
+
+    prevPB0 = curPB0;
+    prevPA12 = curPA12;
+    prevPB3 = curPB3;
 }
