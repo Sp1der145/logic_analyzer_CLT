@@ -96,28 +96,13 @@ void lcd_init(void) {
 }
 
 void displayClear() {
-    /*for(uint8_t page = 0; page < 4; page++){
+    for(uint8_t page = 0; page < 8; page++){
     	sendSPI_GRAPH((0xB0 | page), false);		// Set page
+    	sendSPI_GRAPH((0x10), false);
+    	sendSPI_GRAPH((0x00), false);
         for(uint8_t col = 0; col < 102; col++){
         	sendSPI_GRAPH(0x00, true);				// Clear each byte
         }
-    }*/
-
-	sendSPI_GRAPH((0xB1), false);		// Set page
-    //for(uint8_t col1 = 0; col1 < 102; col1++){
-    	//sendSPI_GRAPH(0x00, true);				// Clear each byte
-    //}
-	sendSPI_GRAPH((0xB2), false);		// Set page
-    for(uint8_t col2 = 0; col2 < 102; col2++){
-    	sendSPI_GRAPH(0x0F, true);				// Clear each byte
     }
-	/*sendSPI_GRAPH((0xB4), false);		// Set page
-    for(uint8_t col3 = 0; col3 < 102; col3++){
-    	sendSPI_GRAPH(0x00, true);				// Clear each byte
-    }
-	sendSPI_GRAPH((0xB5), false);		// Set page
-    for(uint8_t col = 0; col < 102; col++){
-    	sendSPI_GRAPH(0x00, true);				// Clear each byte
-    }*/
 }
 
