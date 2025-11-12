@@ -358,6 +358,40 @@ void update_TM(uint16_t trigger_mode){
 
 
 
+void configurePinsForMode2(void) {
+	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5)){
+		// Enable GPIO clocks if not already
+		LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOA);
+		LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB);
+
+		// Enable SPI1 clock
+		LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
+
+		// Configure alternate function for SPI pins
+		// MOSI -> PA12
+		LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_12, LL_GPIO_MODE_ALTERNATE);  // MOSI (input)
+		LL_GPIO_SetAFPin_8_15(GPIOA, LL_GPIO_PIN_12, LL_GPIO_AF_5);         // Set PA12 to AF5 for SPI1_MOSI
+
+		// SCK -> PB3
+		LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_3, LL_GPIO_MODE_ALTERNATE);   // SCK (input)
+		LL_GPIO_SetAFPin_0_7(GPIOB, LL_GPIO_PIN_3, LL_GPIO_AF_5);           // Set PB3 to AF5 for SPI1_SCK
+
+		// NSS -> PB0
+		LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_0, LL_GPIO_MODE_INPUT);       // NSS (input)
+		// No alternate function needed for NSS in slave mode
+
+		// Configure SPI peripheral
+		LL_SPI_DeInit(SPI1);  								// Reset SPI1 peripheral to ensure clean configuration
+		LL_SPI_SetMode(SPI1, LL_SPI_MODE_SLAVE);   			// Set SPI to slave mode
+		LL_SPI_SetClockPolarity(SPI1, LL_SPI_POLARITY_LOW);	// Clock polarity (low when idle)
+		LL_SPI_SetClockPhase(SPI1, LL_SPI_PHASE_2EDGE);     // Set phase to 2-edge
+		LL_SPI_SetTransferBitOrder(SPI1, LL_SPI_MSB_FIRST); // MSB first
+		LL_SPI_Enable(SPI1);   								// Enable SPI peripheral
+	}
+}
+
+
+
 
 // This is the task to be called by the main function, handling all the messages received in its queue
 void update_char_display(){
@@ -405,8 +439,10 @@ void update_char_display(){
 
 	// Mode 2
 	if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 1){
+		// if going from mode 1 to mode 2:
 		if (mode != 2){
 			mode = 2;
+			//configurePinsForMode2();
 			setup_display(mode);
 		}
 
@@ -438,33 +474,6 @@ void update_char_display(){
 	return;
 }
 
-void configurePinsForMode2(void) {
-	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5)){
-		// Enable GPIO clocks if not already
-		LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOA);
-		LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB);
 
-		// Enable SPI1 clock
-		LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
-
-		// Configure alternate function for SPI pins
-		LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_0, LL_GPIO_MODE_ALTERNATE);
-		LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_12, LL_GPIO_MODE_ALTERNATE);
-		LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_3, LL_GPIO_MODE_ALTERNATE);
-
-		LL_GPIO_SetAFPin_0_7(GPIOB, LL_GPIO_PIN_0, LL_GPIO_AF_5);
-		LL_GPIO_SetAFPin_8_15(GPIOA, LL_GPIO_PIN_12, LL_GPIO_AF_5);
-		LL_GPIO_SetAFPin_0_7(GPIOB, LL_GPIO_PIN_3, LL_GPIO_AF_5);
-
-		// Configure SPI peripheral
-		LL_SPI_DeInit(SPI1);
-		LL_SPI_SetMode(SPI1, LL_SPI_MODE_MASTER);
-		LL_SPI_SetClockPolarity(SPI1, LL_SPI_POLARITY_LOW);
-		LL_SPI_SetClockPhase(SPI1, LL_SPI_PHASE_1EDGE);
-		LL_SPI_SetBaudRatePrescaler(SPI1, LL_SPI_BAUDRATEPRESCALER_DIV8);
-		LL_SPI_SetTransferBitOrder(SPI1, LL_SPI_MSB_FIRST);
-		LL_SPI_Enable(SPI1);
-	}
-}
 
 
