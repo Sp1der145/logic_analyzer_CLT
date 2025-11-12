@@ -9,6 +9,7 @@
 #include "artist.h"
 #include "SoftwareSPI.h"
 #include "queue.h"
+#include "main.h"
 
 extern Queue SPI_q;
 extern Queue M1_data_q;
@@ -18,13 +19,13 @@ void draw(){
 	uint16_t data[8] = {0x80,0x80,0x80,0x01,0x80,0x80,0x01,0x01};
 	//uint16_t fill[8] = {0x80,0x80,0x80,0x01,0x80,0x80,0x01,0x01}; // WARNING unused varaible
 
-	int32_t fill1;
-	int32_t data1;
+	//int32_t fill1;
+	//int32_t data1;
 
-	bool haveData = dequeue(&M1_data_q, &fill1); // Not sure whats going on here but fill and data are not the right type, also only dequeueing to the first element of the array each time?
-	haveData = dequeue(&M1_data_q, &data1);
-	haveData = dequeue(&M1_data_q, &fill1);
-	if(!haveData){
+	//bool haveData = dequeue(&M1_data_q, &fill1); // Not sure whats going on here but fill and data are not the right type, also only dequeueing to the first element of the array each time?
+	//haveData = dequeue(&M1_data_q, &data1);
+	//haveData = dequeue(&M1_data_q, &fill1);
+	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
 		return;
 	}
 
@@ -67,16 +68,12 @@ void draw(){
 		  }
 		  //sendSPI_GRAPH(0xFF, true);
 		  enqueue(&SPI_q, 0x011000FF);
-		  for(int n = 0; n<2; n++){
 		  	  for(int i = 0; i<8; i++){
-		  		  for(int j = 0; j<4; j++){
+		  		  for(int j = 0; j<8; j++){
 				  	  //sendSPI_GRAPH(data[i], true);
 		  			  enqueue(&SPI_q, 0x01100000 | data[i]);
 			  	  }
-		  		  if((i==7)&&(n==1)){
-		  			  break;
-		  		  }
-		  		  if(i<6){
+		  		  if(i<7){
 		  		  	  if(data[i]!=data[i+1]){
 		  		  		  //sendSPI_GRAPH(0xFF, true);
 		  		  		  enqueue(&SPI_q, 0x011000FF);
@@ -88,7 +85,7 @@ void draw(){
 		  		  		  enqueue(&SPI_q, 0x011000FF);
 		  		  	  }
 		  		  }
-		  	  }
+
 		  }
 		  for(int i = 0; i<35; i++){
 			  //sendSPI_GRAPH(0x01, true);
