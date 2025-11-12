@@ -171,7 +171,7 @@ void init_display(){
 	if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
 		setup_display(1);
 	}
-	else if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 0){
+	else if (LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5) == 1){
 		setup_display(2);
 	}
 
