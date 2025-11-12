@@ -1,5 +1,6 @@
-#include "main.h"
 #include "mode1Source.h"
+#include "queue.h"
+#include "main.h"
 
 /* ------------------------------------------------------ */
 /* ---------------------- QUEUE VARS -------------------- */
@@ -8,22 +9,21 @@
 volatile uint8_t _triggerTrace = 0;  // Can be 0–5
 volatile uint32_t _sampleRate = 5;   // Can be 0–10
 
+//Queue for triggerTrace&sampleRate Task Sharing
+extern Queue M1_trigger_q;
+
 /* ------------------------------------------------------ */
 /* ------------------ LOCAL VARS --------------- */
 /* ------------------------------------------------------ */
-// Input and FSM variables are file-private
-static uint8_t P_A_in = UNPRESSED;
-static uint8_t P_B_in = UNPRESSED;
-static uint8_t C_A_in;
-static uint8_t C_B_in;
-
 // GPIO input snapshots
 static uint8_t inPA9;
 static uint8_t inPA10;
 static uint8_t inPA8;
 
-// FSM Don't need this??
-//static uint8_t getFSMoutput(struct completeFSM *x, uint8_t in){};
+// Previous pin states for edge detection
+static uint8_t prevPB0 = 0;
+static uint8_t prevPA12 = 0;
+static uint8_t prevPB3 = 0;
 
 /* ------------------------------------------------------ */
 /* ---------------------- FSM TABLES --------------------- */
@@ -76,8 +76,7 @@ static const struct qTransition triggerCycles[6] = {
 /* ------------------------------------------------------ */
 static struct completeFSM EncA = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
 static struct completeFSM EncB = { .q = 1, .numTransitions = 16, .table = encoderEdgeTransitions };
-static struct completeFSM btnInc = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
-static struct completeFSM btnDec = { .q = PBqUP, .numTransitions = 8, .table = pushButton }; // FIX WARNING HERE
+static struct completeFSM btnPush = { .q = PBqUP, .numTransitions = 8, .table = pushButton };
 static struct completeFSM triggerTraceFSM = { .q = pgtMiddle, .numTransitions = 6, .table = triggerCycles };
 
 /* ------------------------------------------------------ */
@@ -116,57 +115,76 @@ static inline void updateInputs(void) {
 /* ------------------------------------------------------ */
 /* ---------------------- FSM TASKS ---------------------- */
 /* ------------------------------------------------------ */
-void checkChannelA(void) {
+void checkChannelA_B(void) {
     updateInputs();
 
-    C_A_in = getFSMoutput(&EncA, inPA9);
-    C_B_in = getFSMoutput(&EncB, inPA10);
+    // Debunce and gather Channel A & B
+    uint8_t A_out = getFSMoutput(&EncA, inPA9);
+    uint8_t B_out = getFSMoutput(&EncB, inPA10);
 
-    if (C_A_in != P_A_in) {
-        if (C_A_in != C_B_in) {
-            if (_sampleRate > 0) _sampleRate--;
-        } else {
-            if (_sampleRate < 10) _sampleRate++;
-        }
-        P_A_in = C_A_in;
-    }
+    // Remember the old A value (Set as 0/Unpressed first)
+    static uint8_t oldA = UNPRESSED;
+
+    // Only act when A changes from UNPRESSED -> PRESSED
+	if (oldA == UNPRESSED && A_out == PRESSED) {
+		// If Channel B is high, rotation is one direction; if low, the other.
+		if (B_out) {
+			//Inc Sample rate to 10 MAX
+			if (_sampleRate < 10) _sampleRate++;
+		} else {
+			// Dec Sample rate to 1 MIN
+			if (_sampleRate > 1) _sampleRate--;
+		}
+		// Update the Current SampleTimer
+		updateSampleTimer_LL(_sampleRate);
+	}
+    oldA = A_out;
+
+    // DOUBLE CHECK that sample rate is a between 1 & 10
+    if (_sampleRate < 1) _sampleRate = 1;
+    if (_sampleRate > 10) _sampleRate = 10;
 }
 
-void checkChannelB(void) {
-    updateInputs();
-
-    C_A_in = getFSMoutput(&EncA, inPA9);
-    C_B_in = getFSMoutput(&EncB, inPA10);
-
-    if (C_B_in != P_B_in) {
-        if (C_B_in == C_A_in) {
-            if (_sampleRate > 0) _sampleRate--;
-        } else {
-            if (_sampleRate < 10) _sampleRate++;
-        }
-        P_B_in = C_B_in;
-    }
-}
 
 void nextTriggerTrace(void) {
     updateInputs();
-
-    uint8_t buttonPress = getFSMoutput(&btnInc, inPA8);
-    //uint8_t buttonPress = getFSMoutput(&btnDec, inPA8); Diff Name & Input required??
-    uint8_t newTrace = getFSMoutput(&triggerTraceFSM, buttonPress);
-    if (buttonPress == 1) {
+    uint8_t buttonOutput = getFSMoutput(&btnPush, inPA8);
+    // Advance the trigger trace when the button is RELEASED
+    // Which means that it had to be PRESSED in the first place hence why it only updates after release
+    if (buttonOutput == PBRELEASE) {
+        uint8_t newTrace = getFSMoutput(&triggerTraceFSM, 1);
         setTriggerTrace(newTrace);
     }
 }
 
+
 /* ------------------------------------------------------ */
-/* ---------------------- TASK CALLERS ------------------- */
+/* ---------------------- TASK CALLERS ------------------ */
 /* ------------------------------------------------------ */
 void checkEncoderInputs(void) {
-    checkChannelA();
-    checkChannelB();
+	checkChannelA_B();
 }
 
 void checkButtonFSM(void) {
     nextTriggerTrace();
+}
+
+void checkTriggerEdges(void) {
+    uint8_t curPB0 = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_0);
+    uint8_t curPA12 = LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_12);
+    uint8_t curPB3 = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_3);
+
+    // Positive edges
+    if (!prevPB0 && curPB0) enqueue(&M1_trigger_q, ptgTop);
+    if (!prevPA12 && curPA12) enqueue(&M1_trigger_q, pgtMiddle);
+    if (!prevPB3 && curPB3) enqueue(&M1_trigger_q, pgtBottom);
+
+    // Negative edges
+    if (prevPB0 && !curPB0) enqueue(&M1_trigger_q, ngtTop);
+    if (prevPA12 && !curPA12) enqueue(&M1_trigger_q, ngtMiddle);
+    if (prevPB3 && !curPB3) enqueue(&M1_trigger_q, ngtBottom);
+
+    prevPB0 = curPB0;
+    prevPA12 = curPA12;
+    prevPB3 = curPB3;
 }
