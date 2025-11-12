@@ -1,6 +1,7 @@
 #include "mode1Source.h"
 #include "queue.h"
 #include "main.h"
+#include "mode1TimerISR.h"
 
 /* ------------------------------------------------------ */
 /* ---------------------- QUEUE VARS -------------------- */
