@@ -9,6 +9,9 @@
 #include "queue.h"
 #include "main.h"
 #include "mode1Source.h"
+#include "stm32l4xx_ll_gpio.h"
+#include "stm32l4xx_ll_spi.h"
+#include "stm32l4xx_ll_bus.h"
 
 #define SAMPLE_SIZE 8
 
@@ -22,6 +25,18 @@ static uint8_t trace3Array[SAMPLE_SIZE];
 static uint8_t isCollecting = 0;
 static uint8_t sampleIndex = 0;
 static int32_t triggerType = -1;
+
+void configurePinsForMode1(void) {
+	if(LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_5)){
+		//Disable SPI peripheral if it's active
+		LL_SPI_Disable(SPI1);
+
+		//Set PB0, PA12, PB3 as INPUT
+		LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_0, LL_GPIO_MODE_INPUT);
+		LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_12, LL_GPIO_MODE_INPUT);
+		LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_3, LL_GPIO_MODE_INPUT);
+	}
+}
 
 void dataCollectionTask(void) {
     int32_t sampleEvent;
